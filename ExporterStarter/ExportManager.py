@@ -68,7 +68,7 @@ def start_fake_exporters(ts_batch_size):
         )
         processes.append(process)
 
-def start_evaluation_tool(num_targets, window_size, query_type, num_timeseries):
+def start_evaluation_tool(num_targets, window_size, query_type, num_timeseries, waiteval):
     process = subprocess.call(
         [
             sys.executable,
@@ -77,7 +77,7 @@ def start_evaluation_tool(num_targets, window_size, query_type, num_timeseries):
             f"--windowsize={str(window_size)}",
             f"--querytype={query_type}",
             f"--timeseries={str(num_timeseries)}",
-            "--waiteval=10",
+            f"--waiteval={str(waiteval)}",
         ]
     )
     print("started evaluation tool!")
@@ -96,6 +96,7 @@ if __name__ == "__main__":
     parser.add_argument("--targets", type=int, help="number of fake exporter targets")
     parser.add_argument("--windowsize", type=int, help="number of samples in the query window")
     parser.add_argument("--querytype", type=str, help="query type [avg, sum, quantile]")
+    parser.add_argument("--waiteval", type=int, help="seconds to wait between each evaluation")
     args = parser.parse_args()
     
     if args.config is None:
@@ -114,4 +115,4 @@ if __name__ == "__main__":
     start_prometheus(config_file)
     start_fake_exporters(ts_batch_size)
     time.sleep(window_size * 2)
-    start_evaluation_tool(num_targets, window_size, query_type, args.timeseries)
+    start_evaluation_tool(num_targets, window_size, query_type, args.timeseries, args.waiteval)
