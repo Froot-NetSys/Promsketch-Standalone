@@ -1,3 +1,7 @@
+'''
+Example usage:
+python EvalData.py --targets=1 --waiteval=5 --windowsize=10 --querytype=avg --timeseries=10
+'''
 import re
 import requests
 import argparse
@@ -5,7 +9,7 @@ import pandas as pd
 import sys
 import time
 
-df_ts = pd.read_csv("timeseries.csv")
+# df_ts = pd.read_csv("timeseries.csv")
 stats_df = pd.DataFrame(
     {
         "Sample_Size": [],
@@ -51,6 +55,9 @@ if __name__ == "__main__":
         "--waiteval", type=int, help="time to wait before next eval in seconds"
     )
     parse.add_argument("--targets", type=int, help="number of targets")
+    parse.add_argument("--querytype", type=str, help = "query type")
+    parse.add_argument("--windowsize", type=int, help = "number of samples in the query window")
+    parse.add_argument("--timeseries", type=int, help="total number of timeseries")
     args = parse.parse_args()
     if args.waiteval is None or args.targets is None:
         print("Missing argument --waiteval, --targets")
@@ -58,12 +65,15 @@ if __name__ == "__main__":
 
     wait_time = args.waiteval
     targets = args.targets
+    window_size = args.windowsize
+    query_type = args.querytype
+    num_timeseries = args.timeseries
     res = make_requests(wait_time)
     stats_df = pd.concat([stats_df, pd.DataFrame(res)], ignore_index=True)
     agg_table = stats_df.groupby("Sample_Size").agg(['mean', 'std'])
 
     # file name: <number_of_samples>_<query_type>_<number_of_timeseries>.csv
-    agg_table.to_csv(f"{10}_samples_avg_10_ts.csv", index = False)
+    agg_table.to_csv(f"{str(window_size)}_samples_{query_type}_{str(num_timeseries)}_ts.csv", index = False)
 
 '''
     avg_row = {"Monitoring_Targets": targets}

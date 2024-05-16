@@ -6,6 +6,7 @@ python ExportManager.py --config=num_samples_config.yml --targets=1 --timeseries
 python ExportManager.py --config=num_samples_config.yml --targets=2 --timeseries=1000 --windowsize=10 --querytype=avg
 python ExportManager.py --config=num_samples_config.yml --targets=20 --timeseries=10000 --windowsize=10 --querytype=avg
 python ExportManager.py --config=num_samples_config.yml --targets=200 --timeseries=100000 --windowsize=10 --querytype=avg
+python ExportManager.py --config=num_samples_config.yml --targets=2000 --timeseries=1000000 --windowsize=10 --querytype=avg
 python ExportManager.py --config=num_samples_config.yml --targets=1 --timeseries=1 --windowsize=100 --querytype=avg
 python ExportManager.py --config=num_samples_config.yml --targets=1 --timeseries=1 --windowsize=1000 --querytype=avg
 python ExportManager.py --config=num_samples_config.yml --targets=1 --timeseries=1 --windowsize=10000 --querytype=avg
@@ -15,7 +16,7 @@ python ExportManager.py --config=num_samples_config.yml --targets=1 --timeseries
 
 import yaml
 import argparse
-import sys, os
+import sys, os, time
 import subprocess
 
 ports = []
@@ -67,10 +68,26 @@ def start_fake_exporters(ts_batch_size):
         )
         processes.append(process)
 
+def start_evaluation_tool(num_targets, window_size, query_type, num_timeseries):
+    process = subprocess.Popen(
+        [
+            sys.executable,
+            "../EvaluationTools/EvalData.py",
+            f"--targets={str(num_targets)}",
+            f"--windowsize={str(window_size)}",
+            f"--querytype={query_type}",
+            f"--timeseries={str(num_timeseries)}",
+            "--waiteval=10",
+        ]
+    )
+    print("started evaluation tool!")
+    processes.append(process)
+
 if __name__ == "__main__":
 
     os.system("pkill -9 prometheus")
     os.system("kill $(ps aux | grep '[p]ython fake_norm_exporter.py' | awk '{print $2}')")
+    os.system("kill $(ps aux | grep '[p]ython ../EvaluationTools/EvalData.py' | awk '{print $2}')")
 
     parser = argparse.ArgumentParser(description="process Prometheus config file")
     parser.add_argument("--config", type=str, help="config")
@@ -95,3 +112,5 @@ if __name__ == "__main__":
     
     start_prometheus(config_file)
     start_fake_exporters(ts_batch_size)
+    time.sleep(window_size * 2)
+    start_evaluation_tool(num_targets, window_size, query_type, args.timeseries)
