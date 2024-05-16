@@ -1,4 +1,17 @@
-# Example usage: python ExportManager.py --config=num_samples_config.yml --targets=1 --timeseries=1
+# Example usage:
+'''
+python ExportManager.py --config=num_samples_config.yml --targets=1 --timeseries=1 --windowsize=10 --querytype=avg
+python ExportManager.py --config=num_samples_config.yml --targets=1 --timeseries=10 --windowsize=10 --querytype=avg
+python ExportManager.py --config=num_samples_config.yml --targets=1 --timeseries=100 --windowsize=10 --querytype=avg
+python ExportManager.py --config=num_samples_config.yml --targets=2 --timeseries=1000 --windowsize=10 --querytype=avg
+python ExportManager.py --config=num_samples_config.yml --targets=20 --timeseries=10000 --windowsize=10 --querytype=avg
+python ExportManager.py --config=num_samples_config.yml --targets=200 --timeseries=100000 --windowsize=10 --querytype=avg
+python ExportManager.py --config=num_samples_config.yml --targets=1 --timeseries=1 --windowsize=100 --querytype=avg
+python ExportManager.py --config=num_samples_config.yml --targets=1 --timeseries=1 --windowsize=1000 --querytype=avg
+python ExportManager.py --config=num_samples_config.yml --targets=1 --timeseries=1 --windowsize=10000 --querytype=avg
+python ExportManager.py --config=num_samples_config.yml --targets=1 --timeseries=1 --windowsize=100000 --querytype=avg
+python ExportManager.py --config=num_samples_config.yml --targets=1 --timeseries=1 --windowsize=1000000 --querytype=avg
+'''
 
 import yaml
 import argparse
@@ -7,12 +20,10 @@ import subprocess
 
 ports = []
 processes = []
-num_targets = 3
-ts_batch_size = 1
 START_PORT = 8000
 
 
-def define_targets(file):
+def define_targets(file, window_size, query_type):
     with open(file, "r") as f:
         config_data = yaml.safe_load(f)
     prefix = "localhost:"
@@ -20,13 +31,13 @@ def define_targets(file):
     for port in ports:
         res.append(prefix + str(port))
     config_data["scrape_configs"][0]["static_configs"][0]["targets"] = res
-
+    config_data["rule_files"] = [f"{str(window_size)}samples_{query_type}.yml"]
     with open(file, "w") as f:
         yaml.dump(config_data, f, default_flow_style=True)
 
 
-def create_ports(targets):
-    for i in range(targets):
+def create_ports(num_targets):
+    for i in range(num_targets):
         port = START_PORT + i
         ports.append(port)
 
@@ -36,13 +47,12 @@ def start_prometheus(config):
         [
             "/users/zz_y/prometheus/prometheus",
             f"--config.file={config}",
-            "--storage.local.path=/mydata",
         ]
     )
     processes.append(process)
 
 
-def start_fake_exporters():
+def start_fake_exporters(ts_batch_size):
     for port in ports:
         starting_val = (port - START_PORT) * ts_batch_size
         process = subprocess.Popen(
@@ -66,6 +76,8 @@ if __name__ == "__main__":
     parser.add_argument("--config", type=str, help="config")
     parser.add_argument("--timeseries", type=int, help="number of timeseries to generate")
     parser.add_argument("--targets", type=int, help="number of fake exporter targets")
+    parser.add_argument("--windowsize", type=int, help="number of samples in the query window")
+    parser.add_argument("--querytype", type=str, help="query type [avg, sum, quantile]")
     args = parser.parse_args()
     
     if args.config is None:
@@ -74,10 +86,12 @@ if __name__ == "__main__":
 
     config_file = args.config    
     num_targets = args.targets
-    ts_batch_size = int(args.timeseries / num_targets)
+    ts_batch_size = int(args.timeseries / num_targets) # assume it's divisible
+    window_size = args.windowsize
+    query_type = args.querytype
     
     create_ports(num_targets)
-    define_targets(config_file)
+    define_targets(config_file, window_size, query_type)
     
     start_prometheus(config_file)
-    start_fake_exporters()
+    start_fake_exporters(ts_batch_size)

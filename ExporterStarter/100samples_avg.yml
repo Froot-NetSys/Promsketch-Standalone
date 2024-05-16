@@ -1,0 +1,5 @@
+groups:
+  - name: fake_metric_100_samples
+    rules:
+      - record: fake_metric_avg100
+        expr: avg_over_time(fake_machine_metric[100s])
