@@ -1,6 +1,6 @@
 import yaml
 import argparse
-import sys
+import sys, os
 import subprocess
 
 ports = []
@@ -54,6 +54,10 @@ def start_fake_exporters():
         processes.append(process)
 
 if __name__ == "__main__":
+
+    os.system("pkill -9 prometheus")
+    os.system("kill $(ps aux | grep '[p]ython fake_norm_exporter.py' | awk '{print $2}')")
+
     parser = argparse.ArgumentParser(description="process Prometheus config file")
     parser.add_argument("--config", type=str, help="config")
     parser.add_argument("--timeseries", type=int, help="number of timeseries to generate")
