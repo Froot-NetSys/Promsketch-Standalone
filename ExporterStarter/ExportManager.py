@@ -86,6 +86,7 @@ def start_evaluation_tool(num_targets, window_size, query_type, num_timeseries):
 if __name__ == "__main__":
 
     os.system("pkill -9 prometheus")
+    os.system("rm -r data")
     os.system("kill $(ps aux | grep '[p]ython fake_norm_exporter.py' | awk '{print $2}')")
     os.system("kill $(ps aux | grep '[p]ython ../EvaluationTools/EvalData.py' | awk '{print $2}')")
 
