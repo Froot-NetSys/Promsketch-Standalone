@@ -19,7 +19,7 @@ plt.rcParams["figure.figsize"] = (12, 5)
 '''
 
 
-num_samples = [100] # 16min
+num_samples = [10000] # 16min
 num_ts = [1, 10, 100, 1000, 10000, 100000]
 
 querytype = ["avg", "sum", "quantile"]
@@ -47,4 +47,4 @@ plt.plot(num_ts, y["quantile"], label="quantile_over_time")
 ax = plt.gca()
 ax.set_xscale('log')
 plt.legend()
-plt.savefig('ts_num_latency.pdf',bbox_inches='tight')
+plt.savefig('10000_ts_num_latency.pdf',bbox_inches='tight')
