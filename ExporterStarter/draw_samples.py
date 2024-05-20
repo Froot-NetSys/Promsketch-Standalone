@@ -21,7 +21,7 @@ plt.rcParams["figure.figsize"] = (12, 5)
 
 num_samples = [10, 100, 1000, 10000] # 100000
 # num_ts = [1, 10, 100, 1000, 10000, 100000]
-num_ts = [1]
+num_ts = [100000]
 querytype = ["avg", "sum", "quantile"]
 mapping = {"avg": "Average", "sum": "Sum", "quantile": "Quantile"}
 
@@ -47,4 +47,4 @@ plt.plot(num_samples, y["quantile"], label="quantile_over_time")
 ax = plt.gca()
 ax.set_xscale('log')
 plt.legend()
-plt.savefig('window_size_latency.pdf',bbox_inches='tight')
+plt.savefig('100000_ts_window_size_latency.pdf',bbox_inches='tight')
