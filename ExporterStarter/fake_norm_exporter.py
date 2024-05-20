@@ -45,7 +45,7 @@ if __name__ == "__main__":
     if args.port is None or args.valuescale is None or args.instancestart is None or args.batchsize is None:
         print("Missing argument --port, or --valuescale or --instancestart")
         sys.exit(0)
-    print("Starting Server ...")
+    # print("Starting Server ...")
     metric_collector = CustomCollector(
         args.batchsize, args.valuescale, args.instancestart
     )
@@ -54,6 +54,6 @@ if __name__ == "__main__":
     REGISTRY.unregister(GC_COLLECTOR)
     REGISTRY.register(metric_collector)
     start_http_server(port=args.port)
-    print("Server Started")
+    # print("Server Started")
     while True:
         time.sleep(1)
