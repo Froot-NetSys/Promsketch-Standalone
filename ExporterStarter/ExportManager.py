@@ -21,7 +21,7 @@ import subprocess
 
 ports = []
 processes = []
-START_PORT = 5000
+START_PORT = 10000
 
 
 def define_targets(file, window_size, query_type):
@@ -114,5 +114,5 @@ if __name__ == "__main__":
     
     start_prometheus(config_file)
     start_fake_exporters(ts_batch_size)
-    time.sleep(window_size * 0.2 * 2)
+    time.sleep(window_size * 0.2 * 1.5)
 #    start_evaluation_tool(num_targets, window_size, query_type, args.timeseries, args.waiteval)
