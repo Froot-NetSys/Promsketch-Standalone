@@ -22,3 +22,5 @@ python ExportManager.py --config=num_samples_config.yml --targets=1 --timeseries
 python ExportManager.py --config=num_samples_config.yml --targets=2 --timeseries=1000 --windowsize=100 --querytype=quantile --waiteval=30
 python ExportManager.py --config=num_samples_config.yml --targets=20 --timeseries=10000 --windowsize=100 --querytype=quantile --waiteval=30
 python ExportManager.py --config=num_samples_config.yml --targets=200 --timeseries=100000 --windowsize=100 --querytype=quantile --waiteval=40
+
+/bin/bash ./kill.sh
