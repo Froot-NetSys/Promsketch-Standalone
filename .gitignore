@@ -1,2 +1,4 @@
-ExporterStarter/data/
-data/
+ExporterStarter/victoria-metrics
+ExporterStarter/vmalert
+ExporterStarter/victoria-metrics-data/
+
