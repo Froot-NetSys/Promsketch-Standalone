@@ -1,9 +1,0 @@
-groups:
-  - name: fake_metric_10000_samples
-    rules:
-      - record: fake_metric_avg10000
-        expr: avg_over_time(fake_machine_metric[10000s])
-      - record: fake_metric_sum10000
-        expr: sum_over_time(fake_machine_metric[10000s])
-      - record: fake_metric_quantile10000
-        expr: quantile_over_time(0.5, fake_machine_metric[10000s])
