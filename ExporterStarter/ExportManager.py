@@ -32,7 +32,7 @@ def define_targets(file, window_size, query_type):
     for port in ports:
         res.append(prefix + str(port))
     config_data["scrape_configs"][0]["static_configs"][0]["targets"] = res
-    # config_data["rule_files"] = [f"{str(window_size)}samples_{query_type}.yml"]
+    config_data["rule_files"] = [f"{str(window_size)}samples_{query_type}.yml"]
     with open(file, "w") as f:
         yaml.dump(config_data, f, default_flow_style=True)
 
@@ -43,24 +43,11 @@ def create_ports(num_targets):
         ports.append(port)
 
 
-def start_victoriametrics(config, query_type, num_samples, num_ts):
+def start_prometheus(config, query_type, num_samples, num_ts):
     process = subprocess.Popen(
         [
-            "./victoria-metrics",
-            f"--promscrape.config={config}",
-        ]
-    )
-    processes.append(process)
-
-
-def start_vmalert(query_type, window_size):
-    process = subprocess.Popen(
-        [
-            "./vmalert",
-            f"-rule={str(window_size)}samples_{query_type}.yml",
-            "-datasource.url=http://localhost:8428",
-            "-remoteWrite.url=http://localhost:8428",
-            "-evaluationInterval=1s",
+            "./prometheus",
+            f"--config.file={config}",
         ]
     )
     processes.append(process)
@@ -104,7 +91,7 @@ if __name__ == "__main__":
 
     os.system("./kill.sh")
 
-    parser = argparse.ArgumentParser(description="process Victoriametrics config file")
+    parser = argparse.ArgumentParser(description="process Prometheus config file")
     parser.add_argument("--config", type=str, help="config")
     parser.add_argument(
         "--timeseries", type=int, help="number of timeseries to generate"
@@ -131,11 +118,11 @@ if __name__ == "__main__":
 
     create_ports(num_targets)
     define_targets(config_file, window_size, query_type)
+
+    start_prometheus(config_file, query_type, window_size, args.timeseries)
     start_fake_exporters(ts_batch_size)
-    time.sleep(2)
-    start_victoriametrics(config_file, query_type, window_size, args.timeseries)
-    start_vmalert(query_type=query_type, window_size=window_size)
-    time.sleep(max(window_size * 0.1 * 1.5, 1800))
+    time.sleep(max(window_size * 0.1 * 1.1, 1800))  # at least sleep 30 min
+    # time.sleep((window_size * 0.1 * 2))
     start_evaluation_tool(
         num_targets, window_size, query_type, args.timeseries, args.waiteval
     )
