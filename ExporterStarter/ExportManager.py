@@ -103,7 +103,6 @@ def start_evaluation_tool(
 if __name__ == "__main__":
 
     os.system("./kill.sh")
-   
 
     parser = argparse.ArgumentParser(description="process Victoriametrics config file")
     parser.add_argument("--config", type=str, help="config")
@@ -136,7 +135,7 @@ if __name__ == "__main__":
     time.sleep(2)
     start_victoriametrics(config_file, query_type, window_size, args.timeseries)
     start_vmalert(query_type=query_type, window_size=window_size)
-    time.sleep(window_size * 0.1 * 1.5)
+    time.sleep(max(window_size * 0.1 * 1.5, 1800))
     start_evaluation_tool(
         num_targets, window_size, query_type, args.timeseries, args.waiteval
     )

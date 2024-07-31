@@ -1,5 +1,0 @@
-groups:
-  - name: fake_metric_100_samples
-    rules:
-      - record: fake_metric_sum100
-        expr: sum_over_time(fake_machine_metric[10s])

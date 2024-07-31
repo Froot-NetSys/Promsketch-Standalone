@@ -6,8 +6,10 @@ import argparse
 import random
 import sys
 import time
+import numpy
 
 batch_size = 1
+
 
 class CustomCollector(Collector):
 
@@ -15,6 +17,7 @@ class CustomCollector(Collector):
         self.num_machines = num_machines
         self.scale = scale
         self.machine_id_start = machine_id_start
+        self.rng = numpy.random.default_rng()
 
     def collect(self):
 
@@ -23,10 +26,13 @@ class CustomCollector(Collector):
             "Generating fake machine time series data with normal distibution",
             labels=["machineid"],
         )
-        for i in range(self.machine_id_start, self.machine_id_start + self.num_machines):
+        for i in range(
+            self.machine_id_start, self.machine_id_start + self.num_machines
+        ):
             value = -1
-            while value < 0:
-                value = random.gauss(0.5, 0.2) * self.scale
+            while value < 0 or value > 100000:
+                # value = self.rng.normal() * 50000 + 10000
+                value = numpy.random.zipf(1.01)
 
             fake_metric.add_metric([f"machine_{i}"], value=value)
 
@@ -40,9 +46,18 @@ if __name__ == "__main__":
     parser.add_argument(
         "--valuescale", type=int, help="range of report metric 0-valuescale"
     )
-    parser.add_argument("--batchsize", type=int, help="machine number (timeseries number) for each target to generate")
+    parser.add_argument(
+        "--batchsize",
+        type=int,
+        help="machine number (timeseries number) for each target to generate",
+    )
     args = parser.parse_args()
-    if args.port is None or args.valuescale is None or args.instancestart is None or args.batchsize is None:
+    if (
+        args.port is None
+        or args.valuescale is None
+        or args.instancestart is None
+        or args.batchsize is None
+    ):
         print("Missing argument --port, or --valuescale or --instancestart")
         sys.exit(0)
     # print("Starting Server ...")
