@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 {rule_files: [10000000samples_quantile.yml], scrape_configs: [{job_name: fake-exporter,
+=======
+{rule_files: [10000000samples_avg.yml], scrape_configs: [{job_name: fake-exporter,
+>>>>>>> 590cc52c05dc4c362d49bf59cf21173f27bd26b6
       scrape_interval: 100ms, static_configs: [{targets: ['localhost:10000', 'localhost:10001',
             'localhost:10002', 'localhost:10003', 'localhost:10004', 'localhost:10005',
             'localhost:10006', 'localhost:10007', 'localhost:10008', 'localhost:10009',
