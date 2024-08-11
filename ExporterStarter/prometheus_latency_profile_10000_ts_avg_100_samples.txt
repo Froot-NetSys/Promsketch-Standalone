@@ -1,0 +1,4 @@
+[promql] read from storage time= 0 (s)
+[promql] call time= 0 (s)
+[promql] read from storage time= 0 (s)
+[promql] call time= 0 (s)
