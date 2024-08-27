@@ -1,0 +1,15 @@
+groups:
+  - name: fake_metric_quantile100000_concurrent
+    rules:
+      - record: fake_metric_quantile100000
+        expr: quantile_over_time(0.9, fake_machine_metric[100000s])
+  - name: fake_metric_quantile10000_concurrent
+    rules:
+      - record: fake_metric_quantile10000
+        expr: quantile_over_time(0.9, fake_machine_metric[10000s])
+  - name: fake_metric_quantile1000_concurrent
+    rules:  
+      - record: fake_metric_quantile1000
+        expr: quantile_over_time(0.9, fake_machine_metric[1000s])
+
+      

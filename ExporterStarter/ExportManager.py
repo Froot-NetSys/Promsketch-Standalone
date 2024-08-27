@@ -24,7 +24,7 @@ processes = []
 START_PORT = 10000
 
 
-def define_targets(file, window_size, query_type):
+def define_targets(file, query_type):
     with open(file, "r") as f:
         config_data = yaml.safe_load(f)
     prefix = "localhost:"
@@ -32,7 +32,7 @@ def define_targets(file, window_size, query_type):
     for port in ports:
         res.append(prefix + str(port))
     config_data["scrape_configs"][0]["static_configs"][0]["targets"] = res
-    config_data["rule_files"] = [f"samples_{query_type}.yml"]
+    config_data["rule_files"] = [f"samples_{query_type}_concurrent.yml"]
     with open(file, "w") as f:
         yaml.dump(config_data, f, default_flow_style=True)
 
@@ -43,15 +43,18 @@ def create_ports(num_targets):
         ports.append(port)
 
 
-def start_prometheus(config, query_type, num_samples, num_ts):
+def start_prometheus(config, query_type, num_ts):
     f = open(
-        f"prometheus_latency_profile_{str(num_ts)}_ts_{query_type}_{num_samples}_samples.txt",
+        f"prometheus_latency_profile_{str(num_ts)}_ts_{query_type}_samples.txt",
         "w",
     )
     process = subprocess.Popen(
         [
             "./prometheus",
             f"--config.file={config}",
+            '--rules.max-concurrent-evals=20',
+            '--query.max-samples=1000000000',
+            '--query.timeout=60m',
         ],
         stdout=f,
         stderr=f,
@@ -70,21 +73,20 @@ def start_fake_exporters(ts_batch_size):
                 f"--valuescale=10000",
                 f"--instancestart={str(starting_val)}",
                 f"--batchsize={str(ts_batch_size)}",
+
             ]
         )
         processes.append(process)
 
 
 def start_evaluation_tool(
-    num_targets, window_size, query_type, num_timeseries, waiteval
+    num_targets, num_timeseries, waiteval
 ):
     process = subprocess.call(
         [
             sys.executable,
             "../EvaluationTools/EvalData.py",
             f"--targets={str(num_targets)}",
-            f"--windowsize={str(window_size)}",
-            f"--querytype={query_type}",
             f"--timeseries={str(num_timeseries)}",
             f"--waiteval={str(waiteval)}",
         ]
@@ -110,6 +112,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--waiteval", type=int, help="seconds to wait between each evaluation"
     )
+    parser.add_argument("--max_windowsize", type=int, help="the max window size")
     args = parser.parse_args()
 
     if args.config is None:
@@ -119,16 +122,16 @@ if __name__ == "__main__":
     config_file = args.config
     num_targets = args.targets
     ts_batch_size = int(args.timeseries / num_targets)  # assume it's divisible
-    window_size = args.windowsize
     query_type = args.querytype
+    window_size = args.max_windowsize
 
     create_ports(num_targets)
-    define_targets(config_file, window_size, query_type)
+    define_targets(config_file, query_type)
 
-    start_prometheus(config_file, query_type, window_size, args.timeseries)
+    start_prometheus(config_file, query_type, args.timeseries)
     start_fake_exporters(ts_batch_size)
     time.sleep(max(window_size * 0.1 * 1.1, 1800))  # at least sleep 30 min
-    # time.sleep((window_size * 0.1 * 2))
+    time.sleep((window_size * 0.1 * 2))
     start_evaluation_tool(
-        num_targets, window_size, query_type, args.timeseries, args.waiteval
+        num_targets, args.timeseries, args.waiteval
     )

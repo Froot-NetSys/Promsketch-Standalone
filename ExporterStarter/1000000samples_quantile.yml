@@ -1,5 +1,0 @@
-groups:
-  - name: fake_metric_1000000_samples
-    rules:
-      - record: fake_metric_quantile1000000
-        expr: quantile_over_time(0.5, fake_machine_metric[100000s])

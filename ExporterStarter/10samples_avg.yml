@@ -1,6 +1,0 @@
-groups:
-  - name: fake_metric_10_samples
-    rules:
-      - record: fake_metric_avg10
-        expr: avg_over_time(fake_machine_metric[1s])
- 
