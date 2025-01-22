@@ -11,6 +11,8 @@ import numpy
 batch_size = 1
 caida_length = 20000000
 
+caida_dataset = []
+
 class CustomCollector(Collector):
 
     def __init__(self, num_machines, scale, machine_id_start):
@@ -19,13 +21,22 @@ class CustomCollector(Collector):
         self.machine_id_start = machine_id_start
         self.rng = numpy.random.default_rng()
         self.total_samples = 0
-        self.caida_dataset = []
+        
         filename = "datasets/caida_sourceip.txt" # CAIDA2019
         with open(filename, "r") as f:
-            lines = f.readlines()
-            for line in lines:
-                self.caida_dataset.append(int(line))
-        self.caida_length = len(self.caida_dataset)
+            line = f.readline()
+            total_line = 0
+            while line:
+                line = line.strip("\n")
+                caida_dataset.append(int(line))
+                total_line += 1
+                # print(total_line, int(line), len(caida_dataset))
+                if total_line > 2000000:
+                    break
+                line = f.readline()
+                
+        self.caida_length = total_line
+        # print(self.caida_length)
 
     def collect(self):
 
@@ -37,9 +48,9 @@ class CustomCollector(Collector):
         for i in range(
             self.machine_id_start, self.machine_id_start + self.num_machines
         ):
-            value = self.caida_dataset[self.total_samples % self.caida_length]
+            value = caida_dataset[self.total_samples]
             self.total_samples += 1
-            self.total_samples = self.total_samples % const_3M
+            self.total_samples = self.total_samples % self.caida_length
             fake_metric.add_metric([f"machine_{i}"], value=value)
 
         yield fake_metric
