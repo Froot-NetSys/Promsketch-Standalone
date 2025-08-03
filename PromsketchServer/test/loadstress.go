@@ -4,154 +4,177 @@
 // 	"bytes"
 // 	"encoding/json"
 // 	"fmt"
+// 	"math/rand"
 // 	"net/http"
 // 	"sync"
 // 	"time"
 // )
 
-// type IngestPayload struct {
-// 	Timestamp int64           `json:"timestamp"`
-// 	Metrics   []MetricPayload `json:"metrics"`
-// }
+// const (
+// 	endpoint     = "http://localhost:7000/ingest"
+// 	duration     = 10 * time.Second
+// 	sketchCount  = 2
+// 	machineCount = 10
+// )
 
-// type MetricPayload struct {
+// var (
+// 	sketchTypes = []string{"EHKLL", "EHUNIV"}
+// )
+
+// type Metric struct {
 // 	Name   string            `json:"name"`
 // 	Labels map[string]string `json:"labels"`
+// 	Ts     int64             `json:"ts"`
 // 	Value  float64           `json:"value"`
 // }
 
-// func main() {
-// 	const (
-// 		threads    = 1000
-// 		iterations = 1000
-// 		totalReqs  = threads * iterations
-// 		url        = "http://localhost:7000/ingest"
-// 	)
+// type Payload struct {
+// 	Metrics []Metric `json:"metrics"`
+// }
 
-// 	var wg sync.WaitGroup
-// 	start := time.Now()
-
-// 	for i := 0; i < threads; i++ {
-// 		wg.Add(1)
-// 		go func(threadID int) {
-// 			defer wg.Done()
-// 			for j := 0; j < iterations; j++ {
-// 				payload := IngestPayload{
-// 					Timestamp: time.Now().UnixMilli(),
-// 					Metrics: []MetricPayload{
-// 						{
-// 							Name: "benchmark_metric",
-// 							Labels: map[string]string{
-// 								"machineid": fmt.Sprintf("loadgen_%d_%d", threadID, j),
-// 							},
-// 							Value: float64(j),
-// 						},
-// 					},
-// 				}
-// 				data, _ := json.Marshal(payload)
-// 				resp, err := http.Post(url, "application/json", bytes.NewBuffer(data))
-// 				if err != nil {
-// 					fmt.Println("Request failed:", err)
-// 					continue
-// 				}
-// 				resp.Body.Close()
+// func generatePayload() Payload {
+// 	ts := time.Now().UnixMilli()
+// 	var metrics []Metric
+// 	for _, sketchType := range sketchTypes {
+// 		for i := 0; i < machineCount; i++ {
+// 			metric := Metric{
+// 				Name: "fake_machine_metric",
+// 				Labels: map[string]string{
+// 					"machineid":  fmt.Sprintf("machine_%d", i),
+// 					"sketchtype": sketchType,
+// 				},
+// 				Ts:    ts,
+// 				Value: float64(rand.Intn(100_000)),
 // 			}
-// 		}(i)
+// 			metrics = append(metrics, metric)
+// 		}
+// 	}
+// 	return Payload{Metrics: metrics}
+// }
+
+// func stressLoop(wg *sync.WaitGroup, id int, counter *int) {
+// 	defer wg.Done()
+// 	ticker := time.NewTicker(500 * time.Millisecond)
+// 	defer ticker.Stop()
+
+// 	for range ticker.C {
+// 		payload := generatePayload()
+// 		jsonData, _ := json.Marshal(payload)
+
+// 		resp, err := http.Post(endpoint, "application/json", bytes.NewBuffer(jsonData))
+// 		if err == nil {
+// 			resp.Body.Close()
+// 		}
+// 		*counter += len(payload.Metrics)
+// 		if time.Since(startTime) > duration {
+// 			break
+// 		}
+// 	}
+// }
+
+// var startTime time.Time
+
+// func main() {
+// 	startTime = time.Now()
+// 	var wg sync.WaitGroup
+// 	totalInserted := 0
+
+// 	threadCount := 5
+// 	wg.Add(threadCount)
+
+// 	for i := 0; i < threadCount; i++ {
+// 		go stressLoop(&wg, i, &totalInserted)
 // 	}
 
 // 	wg.Wait()
-// 	duration := time.Since(start).Seconds()
-// 	fmt.Printf("Sent %d requests in %.2f seconds (%.2f req/sec)\n", totalReqs, duration, float64(totalReqs)/duration)
+
+// 	elapsed := time.Since(startTime).Seconds()
+// 	fmt.Printf("Stress Test Finished: %.2f seconds\n", elapsed)
+// 	fmt.Printf("Total samples inserted: %d\n", totalInserted)
+// 	fmt.Printf("Average ingestion speed: %.2f samples/sec\n", float64(totalInserted)/elapsed)
 // }
 
 package main
 
 import (
-	"bytes"
-	"encoding/json"
 	"fmt"
 	"log"
 	"math/rand"
-	"net/http"
 	"sync"
 	"time"
+
+	"github.com/SieDeta/promsketch_std/promsketch"
+
+	"github.com/zzylol/prometheus-sketches/model/labels"
 )
 
 const (
-	serverURL       = "http://localhost:7000/ingest"
-	numClients      = 100                  // number of goroutine paralel
-	scrapeInterval  = 1 * time.Millisecond // interval scraping tinggi
-	metricsPerBatch = 100000               // number metrics per request
+	numClients      = 100 // Jumlah goroutine paralel
+	insertPerClient = 10000
 )
 
-type IngestPayload struct {
-	Timestamp int64           `json:"timestamp"`
-	Metrics   []MetricPayload `json:"metrics"`
+var (
+	ps *promsketch.PromSketches
+)
+
+func generateLabel(i int) labels.Labels {
+	builder := labels.NewBuilder(labels.Labels{})
+	builder.Set("machineid", fmt.Sprintf("machine_%d", i))
+	builder.Set(labels.MetricName, "cpu_usage")
+	return builder.Labels()
 }
 
-type MetricPayload struct {
-	Name   string            `json:"name"`
-	Labels map[string]string `json:"labels"`
-	Value  float64           `json:"value"`
-}
-
-func generateMetrics(id int) []MetricPayload {
-	metrics := make([]MetricPayload, 0, metricsPerBatch)
-	for i := 0; i < metricsPerBatch; i++ {
-		m := MetricPayload{
-			Name: fmt.Sprintf("cpu_usage"),
-			Labels: map[string]string{
-				"job":       "stress_exporter",
-				"instance":  fmt.Sprintf("client_%d_metric_%d", id, i),
-				"machineid": fmt.Sprintf("machine_%d", i),
-			},
-			Value: rand.Float64() * 100,
-		}
-		metrics = append(metrics, m)
-	}
-	return metrics
-}
-
-func startClient(id int, wg *sync.WaitGroup) {
+func insertToSketch(clientID int, wg *sync.WaitGroup) {
 	defer wg.Done()
-	client := &http.Client{}
 
-	for {
-		payload := IngestPayload{
-			Timestamp: time.Now().UnixMilli(),
-			Metrics:   generateMetrics(id),
-		}
-		data, _ := json.Marshal(payload)
+	for j := 0; j < insertPerClient; j++ {
+		lset := generateLabel(j)
+		timestamp := time.Now().UnixMilli()
+		value := rand.Float64() * 100
 
-		req, err := http.NewRequest("POST", serverURL, bytes.NewBuffer(data))
+		err := ps.SketchInsertDefinedRules(lset, timestamp, value)
 		if err != nil {
-			log.Printf("[Client %d] Error creating request: %v", id, err)
-			continue
+			log.Printf("[Client %d] Failed to insert: %v", clientID, err)
 		}
-		req.Header.Set("Content-Type", "application/json")
-
-		resp, err := client.Do(req)
-		if err != nil {
-			log.Printf("[Client %d] Error sending request: %v", id, err)
-			continue
-		}
-		resp.Body.Close()
-
-		if resp.StatusCode != http.StatusOK {
-			log.Printf("[Client %d] Bad response: %s", id, resp.Status)
-		}
-
-		time.Sleep(scrapeInterval)
 	}
 }
 
 func main() {
-	log.Printf("Starting stress test with %d clients, scrape interval = %v, %d metrics/batch", numClients, scrapeInterval, metricsPerBatch)
+	fmt.Println("Initializing sketch system...")
+	ps = promsketch.NewPromSketches()
+
+	// OPTIONAL: Buat sketch-nya dulu di awal (jika belum)
+	fmt.Println("Creating sketches for initial series...")
+	for i := 0; i < 1000; i++ {
+		lset := generateLabel(i)
+		series, _, _ := ps.GetOrCreateWrapper(lset.Hash(), lset)
+
+		// Buat semua sketch di awal
+		sketchTypes := []promsketch.SketchType{
+			promsketch.EHUniv,
+			promsketch.EHCount,
+			promsketch.EHDD,
+			promsketch.EffSum,
+		}
+		config := &promsketch.SketchConfig{
+			EH_univ_config:  promsketch.EHUnivConfig{K: 20, Time_window_size: 1000000},
+			EH_kll_config:   promsketch.EHKLLConfig{K: 50, Kll_k: 256, Time_window_size: 1000000},
+			Sampling_config: promsketch.SamplingConfig{Sampling_rate: 0.05, Time_window_size: 1000000, Max_size: 50000},
+		}
+
+		for _, stype := range sketchTypes {
+			_ = ps.NewSketchInstanceWrapper(series, stype, config)
+		}
+	}
+
+	fmt.Printf("Running %d parallel ingestion clients, each inserting %d times...\n", numClients, insertPerClient)
 
 	var wg sync.WaitGroup
 	for i := 0; i < numClients; i++ {
 		wg.Add(1)
-		go startClient(i, &wg)
+		go insertToSketch(i, &wg)
 	}
 	wg.Wait()
+
+	fmt.Println("Stress insert completed.")
 }

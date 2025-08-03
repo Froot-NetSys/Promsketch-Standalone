@@ -630,6 +630,21 @@ func (ps *PromSketches) getOrCreate(hash uint64, lset labels.Labels) (*memSeries
 	return series, true, nil
 }
 
+// GetSketchInstances mengembalikan pointer ke SketchInstances dari memSeries.
+func (s *memSeries) GetSketchInstances() *SketchInstances {
+	return s.sketchInstances
+}
+
+// GetOrCreateWrapper adalah fungsi exported yang membungkus getOrCreate internal.
+func (ps *PromSketches) GetOrCreateWrapper(hash uint64, lset labels.Labels) (*memSeries, bool, error) {
+	return ps.getOrCreate(hash, lset)
+}
+
+// NewSketchInstanceWrapper adalah fungsi exported untuk membuat sketch baru pada memSeries.
+func (ps *PromSketches) NewSketchInstanceWrapper(series *memSeries, stype SketchType, sc *SketchConfig) error {
+	return newSketchInstance(series, stype, sc)
+}
+
 // SketchInsertInsertionThroughputTest will be called in Prometheus scrape module, only for worst-case insertion throughput test
 // t.(int64) is millisecond level timestamp, based on Prometheus timestamp
 // semua jenis sketch diaktifkan sekaligus pada satu time series.

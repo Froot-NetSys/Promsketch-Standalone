@@ -1,0 +1,5 @@
+{{HiddenSubject .Subject "{{.Name}}"}}
+
+{{.Message}}
+
+{{if .SentBy}}Sent by {{.FooterText}}{{end}}

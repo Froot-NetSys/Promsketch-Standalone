@@ -7,7 +7,6 @@ import (
 	"net/http"
 	"os"
 	"strconv"
-	"strings"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -16,6 +15,8 @@ import (
 
 	"github.com/SieDeta/promsketch_std/promsketch"
 	"github.com/gin-gonic/gin"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/zzylol/prometheus-sketches/model/labels"
 	"github.com/zzylol/prometheus-sketches/promql/parser"
 )
@@ -34,9 +35,39 @@ type MetricPayload struct {
 var ps *promsketch.PromSketches
 var cloudEndpoint = os.Getenv("FORWARD_ENDPOINT")
 
+var (
+	ingestedMetrics = prometheus.NewGaugeVec(
+		prometheus.GaugeOpts{
+			Name: "promsketch_ingested_metrics_total",
+			Help: "Total number of ingested metrics",
+		},
+		[]string{"metric", "machineid"},
+	)
+
+	queryResults = prometheus.NewGaugeVec(
+		prometheus.GaugeOpts{
+			Name: "promsketch_query_result",
+			Help: "Result of PromSketch queries",
+		},
+		[]string{"function", "original_metric", "machineid", "quantile"},
+	)
+)
+
+var maxIngestGoroutines int
+
 func init() {
 	ps = promsketch.NewPromSketches()
 	log.Println("PromSketches instance initialized")
+
+	val := os.Getenv("MAX_INGEST_GOROUTINES")
+	if parsed, err := strconv.Atoi(val); err == nil && parsed > 0 {
+		maxIngestGoroutines = parsed
+	} else {
+		maxIngestGoroutines = 3 // default fallback
+	}
+
+	prometheus.MustRegister(ingestedMetrics)
+	prometheus.MustRegister(queryResults)
 }
 
 func main() {
@@ -44,8 +75,8 @@ func main() {
 
 	router := gin.Default()
 	router.POST("/ingest", handleIngest)
-	router.GET("/query", handleQuery)
-	router.GET("/throughput_test", runThroughputTest)
+	router.GET("/metrics", gin.WrapH(promhttp.Handler()))
+	// router.GET("/throughput_test", runStressThroughputTest)
 	router.GET("/parse", handleParse)
 	router.GET("/debug-state", handleDebugState)
 
@@ -55,6 +86,8 @@ func main() {
 
 	go func() {
 		log.Println(http.ListenAndServe("localhost:6060", nil))
+		http.Handle("/metrics", promhttp.Handler())
+		log.Fatal(http.ListenAndServe(":7000", nil))
 	}()
 
 	log.Printf("PromSketch Go server listening on :7000")
@@ -76,7 +109,7 @@ func handleDebugState(c *gin.Context) {
 		machineID := fmt.Sprintf("machine_%d", i)
 		lsetBuilder := labels.NewBuilder(labels.Labels{})
 		lsetBuilder.Set("machineid", machineID)
-		lsetBuilder.Set(labels.MetricName, "fake_metric") // Ganti sesuai metric kamu
+		lsetBuilder.Set(labels.MetricName, "fake_machine_metric") // Ganti sesuai metric kamu
 		lset := lsetBuilder.Labels()
 
 		minTime, maxTime := ps.PrintCoverage(lset, "avg_over_time") // Ganti ke fungsi yang kamu uji
@@ -161,20 +194,23 @@ func handleIngest(c *gin.Context) {
 
 	start := time.Now()
 	var wg sync.WaitGroup
+	sem := make(chan struct{}, maxIngestGoroutines)
 
 	for _, metric := range payload.Metrics {
 		wg.Add(1)
+		sem <- struct{}{} // acquire slot
+
 		go func(metric MetricPayload) {
 			defer wg.Done()
+			defer func() { <-sem }() // release slot
 
 			log.Printf("[INGEST] name=%s labels=%v value=%.2f", metric.Name, metric.Labels, metric.Value)
 
 			lsetBuilder := labels.NewBuilder(labels.Labels{})
-			// Tambahkan label dari payload (cth: machineid="machine_0")
 			for k, v := range metric.Labels {
 				lsetBuilder.Set(k, v)
 			}
-			lsetBuilder.Set(labels.MetricName, metric.Name) // labels.MetricName = "__name__"
+			lsetBuilder.Set(labels.MetricName, metric.Name)
 			lset := lsetBuilder.Labels()
 
 			log.Printf("[INGEST] Inserting to sketch: name=%s labels=%v ts=%d value=%.2f", metric.Name, metric.Labels, payload.Timestamp, metric.Value)
@@ -182,13 +218,15 @@ func handleIngest(c *gin.Context) {
 			if err := ps.SketchInsert(lset, payload.Timestamp, metric.Value); err == nil {
 				atomic.AddInt64(&totalIngested, 1)
 
-				// Push raw metric to Prometheus
-				labels := map[string]string{}
-				for k, v := range metric.Labels {
-					labels[k] = v
-				}
-				labels["__name__"] = metric.Name
-				pushSyntheticResult(metric.Name, labels, metric.Value, payload.Timestamp)
+				ingestedMetrics.WithLabelValues(metric.Name, metric.Labels["machineid"]).Set(metric.Value)
+
+				// // Push raw metric to Prometheus
+				// labels := map[string]string{}
+				// for k, v := range metric.Labels {
+				// 	labels[k] = v
+				// }
+				// labels["__name__"] = metric.Name
+				// pushSyntheticResult(metric.Name, labels, metric.Value, payload.Timestamp)
 			}
 
 		}(metric)
@@ -198,59 +236,59 @@ func handleIngest(c *gin.Context) {
 	totalDuration := time.Since(start).Milliseconds()
 	log.Printf("[BATCH COMPLETED] Processed %d metrics in %dms", len(payload.Metrics), totalDuration)
 
-	go forwardToCloud(payload)
+	// go forwardToCloud(payload)
 
 	c.JSON(http.StatusOK, gin.H{"status": "success", "ingested_metrics_count": len(payload.Metrics)})
 }
 
-func pushSyntheticResult(metricName string, labels map[string]string, value float64, timestamp int64) {
-	pushgatewayURL := os.Getenv("PUSHGATEWAY_URL")
-	if pushgatewayURL == "" {
-		pushgatewayURL = "http://localhost:9091"
-	}
+// func pushSyntheticResult(metricName string, labels map[string]string, value float64, timestamp int64) {
+// 	pushgatewayURL := os.Getenv("PUSHGATEWAY_URL")
+// 	if pushgatewayURL == "" {
+// 		pushgatewayURL = "http://localhost:9091"
+// 	}
 
-	labelParts := []string{}
-	for k, v := range labels {
-		if k == "__name__" {
-			continue // jangan push label __name__
-		}
-		labelParts = append(labelParts, fmt.Sprintf("%s=\"%s\"", k, v))
-	}
+// 	labelParts := []string{}
+// 	for k, v := range labels {
+// 		if k == "__name__" {
+// 			continue // jangan push label __name__
+// 		}
+// 		labelParts = append(labelParts, fmt.Sprintf("%s=\"%s\"", k, v))
+// 	}
 
-	labelStr := strings.Join(labelParts, ",")
+// 	labelStr := strings.Join(labelParts, ",")
 
-	body := fmt.Sprintf("%s{%s} %f\n", metricName, labelStr, value)
+// 	body := fmt.Sprintf("%s{%s} %f\n", metricName, labelStr, value)
 
-	instanceID := labels["machineid"]
-	if instanceID == "" {
-		instanceID = "default"
-	}
+// 	instanceID := labels["machineid"]
+// 	if instanceID == "" {
+// 		instanceID = "default"
+// 	}
 
-	url := fmt.Sprintf("%s/metrics/job/promsketch_push/instance/%s", pushgatewayURL, instanceID)
+// 	url := fmt.Sprintf("%s/metrics/job/promsketch_push/instance/%s", pushgatewayURL, instanceID)
 
-	log.Printf("[PUSH DEBUG] Pushing to %s with body:\n%s", url, body)
+// 	log.Printf("[PUSH DEBUG] Pushing to %s with body:\n%s", url, body)
 
-	req, err := http.NewRequest("PUT", url, strings.NewReader(body))
-	if err != nil {
-		log.Printf("[PUSH ERROR] request: %v", err)
-		return
-	}
-	req.Header.Set("Content-Type", "text/plain")
+// 	req, err := http.NewRequest("PUT", url, strings.NewReader(body))
+// 	if err != nil {
+// 		log.Printf("[PUSH ERROR] request: %v", err)
+// 		return
+// 	}
+// 	req.Header.Set("Content-Type", "text/plain")
 
-	client := &http.Client{Timeout: 3 * time.Second}
-	resp, err := client.Do(req)
-	if err != nil {
-		log.Printf("[PUSH ERROR] send: %v", err)
-		return
-	}
-	defer resp.Body.Close()
+// 	client := &http.Client{Timeout: 3 * time.Second}
+// 	resp, err := client.Do(req)
+// 	if err != nil {
+// 		log.Printf("[PUSH ERROR] send: %v", err)
+// 		return
+// 	}
+// 	defer resp.Body.Close()
 
-	if resp.StatusCode >= 300 {
-		log.Printf("[PUSH ERROR] status: %s", resp.Status)
-	} else {
-		log.Printf("[PUSH OK] metric=%s labels=%v value=%.2f", metricName, labels, value)
-	}
-}
+// 	if resp.StatusCode >= 300 {
+// 		log.Printf("[PUSH ERROR] status: %s", resp.Status)
+// 	} else {
+// 		log.Printf("[PUSH OK] metric=%s labels=%v value=%.2f", metricName, labels, value)
+// 	}
+// }
 
 // func forwardToCloud(payload IngestPayload) {
 // 	if cloudEndpoint == "" {
@@ -284,18 +322,40 @@ func pushSyntheticResult(metricName string, labels map[string]string, value floa
 // 	}
 // }
 
-func forwardToCloud(payload IngestPayload) {
-	for _, metric := range payload.Metrics {
-		url := fmt.Sprintf("http://pushgateway:9091/metrics/job/promsketch/instance/%s", metric.Labels["machineid"])
-		body := fmt.Sprintf("fake_metric{machineid=\"%s\"} %f\n", metric.Labels["machineid"], metric.Value)
-		resp, err := http.Post(url, "text/plain", strings.NewReader(body))
-		if err != nil {
-			log.Printf("[PUSHGATEWAY ERROR] %v", err)
-			continue
-		}
-		resp.Body.Close()
-	}
-}
+// func forwardToCloud(payload IngestPayload) {
+// 	for _, metric := range payload.Metrics {
+// 		url := fmt.Sprintf("http://pushgateway:9091/metrics/job/promsketch/instance/%s", metric.Labels["machineid"])
+// 		body := fmt.Sprintf("fake_metric{machineid=\"%s\"} %f\n", metric.Labels["machineid"], metric.Value)
+// 		resp, err := http.Post(url, "text/plain", strings.NewReader(body))
+// 		if err != nil {
+// 			log.Printf("[PUSHGATEWAY ERROR] %v", err)
+// 			continue
+// 		}
+// 		resp.Body.Close()
+// 	}
+// }
+
+// func forwardToCloud(payload IngestPayload) {
+// 	for _, metric := range payload.Metrics {
+// 		machineID := metric.Labels["machineid"]
+// 		url := fmt.Sprintf("http://pushgateway:9091/metrics/job/promsketch/instance/%s", machineID)
+
+// 		pr, pw := io.Pipe()
+
+// 		go func(mid string, val float64) {
+// 			// Write directly to pipe writer
+// 			fmt.Fprintf(pw, "fake_metric{machineid=\"%s\"} %f\n", mid, val)
+// 			pw.Close()
+// 		}(machineID, metric.Value)
+
+// 		resp, err := http.Post(url, "text/plain", pr)
+// 		if err != nil {
+// 			log.Printf("[PUSHGATEWAY ERROR] %v", err)
+// 			continue
+// 		}
+// 		resp.Body.Close()
+// 	}
+// }
 
 func logIngestionRate() {
 	var lastTotal int64 = 0
@@ -329,57 +389,6 @@ func logIngestionRate() {
 
 		lastTotal = current
 	}
-}
-
-func handleQuery(c *gin.Context) {
-	funcName := c.Query("func")
-	metricName := c.Query("metric")
-	mintStr := c.Query("mint")
-	maxtStr := c.Query("maxt")
-
-	mint, err := strconv.ParseInt(mintStr, 10, 64)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid 'mint' parameter."})
-		return
-	}
-	maxt, err := strconv.ParseInt(maxtStr, 10, 64)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid 'maxt' parameter."})
-		return
-	}
-
-	otherArgs := 0.0
-	if argStr := c.Query("args"); argStr != "" {
-		otherArgs, _ = strconv.ParseFloat(argStr, 64)
-	}
-
-	lsetBuilder := labels.NewBuilder(labels.Labels{})
-	for k, v := range c.Request.URL.Query() {
-		if strings.HasPrefix(k, "label_") {
-			labelKey := k[len("label_"):len(k)]
-			lsetBuilder.Set(labelKey, v[0])
-		}
-	}
-	lsetBuilder.Set("fake_metric", metricName)
-	lset := lsetBuilder.Labels()
-
-	curTime := time.Now().UnixMilli()
-	if !ps.LookUp(lset, funcName, mint, maxt) {
-		c.JSON(http.StatusAccepted, gin.H{"status": "pending"})
-		return
-	}
-	vector, annotations := ps.Eval(funcName, lset, otherArgs, mint, maxt, curTime)
-	results := []map[string]interface{}{}
-	for _, s := range vector {
-		if !math.IsNaN(s.F) && s.T != 0 {
-			results = append(results, map[string]interface{}{"value": s.F, "timestamp": s.T})
-		}
-	}
-	resp := gin.H{"status": "success", "data": results}
-	if len(annotations) > 0 {
-		resp["annotations"] = annotations
-	}
-	c.JSON(http.StatusOK, resp)
 }
 
 // func handleParse(c *gin.Context) {
@@ -511,32 +520,25 @@ func handleParse(c *gin.Context) {
 
 	results := []map[string]interface{}{}
 	for _, sample := range vector {
-		if !math.IsNaN(sample.F) && sample.T != 0 {
+		if !math.IsNaN(sample.F) {
+			// Perbaiki timestamp jika belum diset (nol)
+			timestamp := sample.T
+			if timestamp == 0 {
+				timestamp = curTime
+			}
+
 			results = append(results, map[string]interface{}{
-				"timestamp": sample.T,
+				"timestamp": timestamp,
 				"value":     sample.F,
 			})
 
-			// Push synthetic query result
-			syntheticLabels := map[string]string{
-				"machineid":       lset.Get("machineid"),
-				"original_metric": lset.Get("__name__"),
-				"function":        funcName,
-			}
-			if funcName == "quantile_over_time" {
-				syntheticLabels["quantile"] = fmt.Sprintf("%.2f", otherArgs)
-			}
-			pushSyntheticResult("promsketch_query_result", syntheticLabels, sample.F, sample.T)
+			queryResults.WithLabelValues(
+				funcName,
+				lset.Get("__name__"),
+				lset.Get("machineid"),
+				fmt.Sprintf("%.2f", otherArgs),
+			).Set(sample.F)
 		}
-		pushSyntheticResult(
-			"promsketch_query_result",
-			map[string]string{
-				"machineid": labelMap["machineid"],
-				"function":  funcName,
-			},
-			sample.F,
-			sample.T,
-		)
 	}
 
 	log.Printf("[QUERY ENGINE] Evaluation successful. Returning %d data points.", len(results))
@@ -681,71 +683,49 @@ func handleParse(c *gin.Context) {
 // 	c.JSON(http.StatusOK, response)
 // }
 
-func runThroughputTest(c *gin.Context) {
-	num := 10000
-	start := time.Now()
+// ===============================================================================================================================
 
-	var wg sync.WaitGroup
-	var success int64
+// ====================================================================================================================================
 
-	for i := 0; i < num; i++ {
-		wg.Add(1)
-		go func(i int) {
-			defer wg.Done()
-			machineID := fmt.Sprintf("bench_%d", i)
-			lset := labels.FromStrings("machineid", machineID, "fake_metric", "benchmark_metric")
-			timestamp := time.Now().UnixMilli()
-			value := float64(i % 1000)
+// func runThroughputTest(c *gin.Context) {
+// 	seriesCountStr := c.DefaultQuery("series", "10000")
+// 	maxGoroutinesStr := c.DefaultQuery("max_goroutines", "50")
 
-			if err := ps.SketchInsertInsertionThroughputTest(lset, timestamp, value); err == nil {
-				atomic.AddInt64(&success, 1)
-			} else {
-				log.Printf("[Error] SketchInsertInsertionThroughputTest failed: %v", err)
-			}
-		}(i)
-	}
+// 	seriesCount, err1 := strconv.Atoi(seriesCountStr)
+// 	maxGoroutines, err2 := strconv.Atoi(maxGoroutinesStr)
+// 	if err1 != nil || err2 != nil || seriesCount <= 0 || maxGoroutines <= 0 {
+// 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid query parameters"})
+// 		return
+// 	}
 
-	wg.Wait()
-	elapsed := time.Since(start).Seconds()
-	rate := float64(success) / elapsed
-
-	log.Printf("[THROUGHPUT TEST] Inserted %d samples in %.2fs (%.2f samples/sec)", success, elapsed, rate)
-
-	c.JSON(http.StatusOK, gin.H{
-		"inserted_samples": success,
-		"duration_seconds": elapsed,
-		"throughput":       fmt.Sprintf("%.2f samples/sec", rate),
-	})
-}
-
-// func runThroughputTestTimed(c *gin.Context) {
-// 	var (
-// 		success int64
-// 		stop    int32
-// 		wg      sync.WaitGroup
-// 	)
-
-// 	// Timer stop: set stop = 1 after 5 seconds
-// 	go func() {
-// 		time.Sleep(5 * time.Second)
-// 		atomic.StoreInt32(&stop, 1)
-// 	}()
+// 	log.Printf("[THROUGHPUT TEST] Starting test with %d timeseries and max %d goroutines", seriesCount, maxGoroutines)
 
 // 	start := time.Now()
-// 	for i := 0; ; i++ {
-// 		if atomic.LoadInt32(&stop) == 1 {
-// 			break
-// 		}
+// 	var wg sync.WaitGroup
+// 	var success int64
+// 	sem := make(chan struct{}, maxGoroutines)
+
+// 	for i := 0; i < seriesCount; i++ {
 // 		wg.Add(1)
+// 		sem <- struct{}{}
+
 // 		go func(i int) {
 // 			defer wg.Done()
-// 			machineID := fmt.Sprintf("bench_timed_%d", i)
-// 			lset := labels.FromStrings("machineid", machineID, "fake_metric", "benchmark_metric")
+// 			defer func() { <-sem }()
+
+// 			machineID := fmt.Sprintf("benchstress_%d", i)
+// 			lset := labels.FromStrings(
+// 				"machineid", machineID,
+// 				"__name__", "benchmark_metric",
+// 			)
+
 // 			timestamp := time.Now().UnixMilli()
-// 			value := float64(i % 1000)
+// 			value := float64(i % 1000) // atau bisa diganti dengan rand.Float64() untuk nilai acak
 
 // 			if err := ps.SketchInsertInsertionThroughputTest(lset, timestamp, value); err == nil {
 // 				atomic.AddInt64(&success, 1)
+// 			} else {
+// 				log.Printf("[ERROR] Insert failed: %v", err)
 // 			}
 // 		}(i)
 // 	}
@@ -754,7 +734,7 @@ func runThroughputTest(c *gin.Context) {
 // 	elapsed := time.Since(start).Seconds()
 // 	rate := float64(success) / elapsed
 
-// 	log.Printf("[TIMED THROUGHPUT TEST] Inserted %d samples in %.2fs (%.2f samples/sec)", success, elapsed, rate)
+// 	log.Printf("[THROUGHPUT TEST] Inserted %d samples in %.2fs (%.2f samples/sec)", success, elapsed, rate)
 
 // 	c.JSON(http.StatusOK, gin.H{
 // 		"inserted_samples": success,
