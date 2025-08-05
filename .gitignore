@@ -9,4 +9,4 @@ ExporterStarter/tsbs_generate_data
 ExporterStarter/data
 .venv/
 PromsketchServer/grafana-v*/bin/grafana
-ExporterStarter/*.txt
+ExporterStarter/*.txtExporterStarter/*.txt
