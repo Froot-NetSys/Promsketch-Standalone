@@ -1,11 +1,127 @@
-How to run?
-1. Start Your Fake Exporters
-First, navigate to your ExporterStarter/ directory and run the ExportManager.py script. This will launch all your fake_norm_exporter.py instances on their respective ports, ready to be scraped.
-python3 ExportManager.py   --config=num_samples_config.yml   --targets=10   --timeseries=10  --max_windowsize=100  --querytype=quantile  --waiteval=30
+# PromSketch Server – Setup and Testing Guide
 
-3. Launch the PromSketch Go Server
-Next, go into your PromsketchServer/ directory and start your Go server. This is the core component that will receive data from the ingester and serve queries. You can optionally set NUM_TIMESERIES_INIT if you need to initialize with a specific number of time series.
-go run . 
+This repository contains the implementation of **PromSketch**, a sketch-based time series processing server, along with supporting tools for ingestion, query testing, visualization, and performance benchmarking.
 
-3. Run the Custom Data Ingester 
-Now, head back to ExporterStarter/custom_data_ingester.py and launch your custom Python data ingester. This script will begin sending data from your running fake exporters directly to your PromSketch Go server. 
+---
+
+## Components
+
+* **Main Server**
+  Path: `ProsmketchServer/main.go`
+  Handles ingestion, sketch storage, and PromQL query execution. Runs on **localhost:7000** by default.
+
+* **Custom Ingester**
+  Path: `ExporterStarter/custom_ingester_noDB_test3_dynamic.py`
+  Forwards raw data into the PromSketch server through dynamically created multiport ingestion endpoints.
+
+* **Export Manager**
+  Path: `ExporterStarter/ExportManager.py`
+  Generates synthetic time series data for ingestion tests.
+
+* **PromTools**
+  Path: `promtools.py`
+  Issues PromQL queries to the PromSketch server at fixed intervals (default: every 5 seconds).
+
+---
+
+## Step-by-Step Testing Instructions
+
+### 1. Start the Export Manager and Custom Ingester
+
+Inside `ExporterStarter/`, run the following to generate and ingest synthetic data:
+
+```bash
+cd ExporterStarter/
+
+# Start Export Manager
+ython3 ExportManager.py \
+  --config=num_samples_config.yml \
+  --targets=8 \
+  --timeseries=10000 \
+  --max_windowsize=100000 \
+  --querytype=entropy \
+  --waiteval=60
+
+# Start Custom Ingester
+python3 custom_ingester_noDB_test3_dynamic.py --config=num_samples_config.yml
+```
+
+---
+
+### 2. Launch the Main PromSketch Server
+
+From `ProsmketchServer/`, run:
+
+```bash
+cd ProsmketchServer/
+
+MAX_INGEST_GOROUTINES=n go run .
+```
+
+* `MAX_INGEST_GOROUTINES` controls concurrency for ingestion.
+* On startup, the server **automatically rewrites `prometheus.yml`** based on the number of multiport ingestion endpoints.
+
+---
+
+### 3. Start Prometheus
+
+From the Prometheus build directory:
+
+```bash
+cd ProsmketchServer/prometheus/
+
+./prometheus --config.file=documentation/examples/prometheus.yml
+```
+
+⚠️ Ensure that the `prometheus.yml` path points to the file rewritten by the server.
+
+---
+
+### 4. Run PromTools for Query Testing
+
+Run PromTools from `ProsmketchServer/` to continuously send PromQL queries:
+
+```bash
+cd ProsmketchServer/
+
+python3 promtools.py
+```
+
+Queries such as `avg_over_time`, `entropy_over_time`, and `quantile_over_time` will be executed every 5 seconds.
+
+---
+
+### 5. Visualize with Grafana
+
+* Connect Grafana to your Prometheus instance.
+* Create dashboards and panels to display ingested metrics and query outputs.
+* Enable **auto-refresh** for live visualization.
+
+---
+
+## Performance Testing
+
+You can benchmark ingestion and query execution as follows:
+
+1. **Ingestion Throughput Test**
+   Increase `--targets`, `--timeseries`, or `numClients` in `ExportManager.py` and `custom_ingester_noDB_test3_dynamic.py` to simulate high ingestion rates.
+
+2. **Query Latency Test**
+   Use `promtools.py` to measure query response times while ingestion load is active.
+
+3. **System Profiling**
+   Enable Go’s built-in `pprof` for CPU and memory profiling:
+
+   ```bash
+   go tool pprof http://localhost:7000/debug/pprof/profile?seconds=30
+   ```
+
+---
+
+## Notes
+
+* **Multiport ingestion endpoints** handle raw data ingestion and forward metrics directly to Prometheus.
+* **Main server (7000)** is responsible for sketch aggregation and query execution. It must be active for queries to run.
+* Prometheus TSDB retains previously scraped data even if the server stops, but new queries require the main server.
+
+---
