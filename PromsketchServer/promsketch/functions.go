@@ -145,6 +145,8 @@ func funcAvgOverTime(ctx context.Context, series *memSeries, c float64, t1, t2, 
 
 func funcSumOverTime(ctx context.Context, series *memSeries, c float64, t1, t2, t int64) Vector {
 	sum := series.sketchInstances.sampling.QuerySum(t1, t2)
+	// print t1t2 sum
+	fmt.Printf("t1: %d, t2: %d, sum: %.0f\n", t1, t2, sum)
 	return Vector{Sample{
 		F: sum,
 	}}
@@ -159,6 +161,8 @@ func funcSum2OverTime(ctx context.Context, series *memSeries, c float64, t1, t2,
 
 func funcCountOverTime(ctx context.Context, series *memSeries, c float64, t1, t2, t int64) Vector {
 	count := series.sketchInstances.sampling.QueryCount(t1, t2)
+	// print t1t2 count
+	fmt.Printf("t1: %d, t2: %d, count: %.0f\n", t1, t2, count)
 	return Vector{Sample{
 		F: float64(count),
 	}}
@@ -261,7 +265,7 @@ func funcQuantileOverTime(ctx context.Context, series *memSeries, otherArgs floa
 	if series == nil || series.sketchInstances == nil || series.sketchInstances.ehkll == nil {
 		// Log atau tangani jika tidak ada instance EHKLL yang relevan
 		fmt.Println("No EHKLL sketch instance found for quantile query.")
-		return Vector{Sample{F: math.NaN(), T: 0}} // Mengembalikan NaN jika sketch tidak ada
+		return Vector{Sample{F: math.NaN()}} // Mengembalikan NaN jika sketch tidak ada
 	}
 
 	merged_kll := series.sketchInstances.ehkll.QueryIntervalMergeKLL(t1, t2)
@@ -269,15 +273,22 @@ func funcQuantileOverTime(ctx context.Context, series *memSeries, otherArgs floa
 	if merged_kll == nil { // <--- TAMBAHKAN PEMERIKSAAN NIL INI
 		// Jika tidak ada data dalam rentang waktu, atau QueryIntervalMergeKLL mengembalikan nil
 		fmt.Println("Merged KLL sketch is nil for quantile query.")
-		return Vector{Sample{F: math.NaN(), T: 0}} // Mengembalikan NaN
+		return Vector{Sample{F: math.NaN()}} // Mengembalikan NaN
 	}
 
 	fmt.Println("quantile=", otherArgs)
 	// Sekarang panggil CDF dengan aman
 	cdf := merged_kll.CDF() // <--- Panic terjadi di sini sebelumnya
-	q := cdf.Quantile(otherArgs)
+	q := cdf.Query(otherArgs)
 
-	return Vector{Sample{F: q, T: 0}}
+	qmin := cdf.Query(0)
+	qmax := cdf.Query(1)
+	fmt.Printf("t1: %d, t2: %d, q(0)=%.6f, q(%.2f)=%.6f, q(1)=%.6f\n", t1, t2, qmin, otherArgs, q, qmax)
+
+	// Print t1t2 quantile
+	fmt.Printf("t1: %d, t2: %d, quantile: %f\n", t1, t2, q)
+
+	return Vector{Sample{F: q}}
 }
 
 func funcMinOverTime(ctx context.Context, series *memSeries, c float64, t1, t2, t int64) Vector {

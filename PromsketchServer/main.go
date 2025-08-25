@@ -255,10 +255,10 @@ func (psv *PortServer) getOrCreateRaw(name string, labelKeys []string) *promethe
 // Generate prometheus config
 // ============================
 const scrapeSectionTemplate = `  - job_name: "promsketch_raw_groups"
-    static_configs:
-      - targets:
+	static_configs:
+	  - targets:
 {{- range .Ports }}
-          - "localhost:{{ . }}"
+		  - "localhost:{{ . }}"
 {{- end }}
 `
 
@@ -567,7 +567,7 @@ func handleIngest(c *gin.Context) {
 }
 
 func processIngest(payload IngestPayload) (int, error) {
-	start := time.Now()
+	// start := time.Now()
 	var wg sync.WaitGroup
 	sem := make(chan struct{}, maxIngestGoroutines)
 
@@ -634,8 +634,8 @@ func processIngest(payload IngestPayload) (int, error) {
 		}(metric)
 	}
 	wg.Wait()
-	totalDuration := time.Since(start).Milliseconds()
-	log.Printf("[BATCH COMPLETED] Processed %d metrics in %dms", len(payload.Metrics), totalDuration)
+	// totalDuration := time.Since(start).Milliseconds()
+	// log.Printf("[BATCH COMPLETED] Processed %d metrics in %dms", len(payload.Metrics), totalDuration)
 	return len(payload.Metrics), nil
 }
 
@@ -873,6 +873,7 @@ func handleParse(c *gin.Context) {
 			return
 		}
 		otherArgs = firstArg.Val
+		log.Printf("[QUERY ENGINE] quantile_over_time arg: quantile=%.4f", otherArgs)
 	} else if len(call.Args) > 1 {
 		firstArg, ok := call.Args[0].(*parser.NumberLiteral)
 		if ok {
@@ -926,13 +927,37 @@ func handleParse(c *gin.Context) {
 		return
 	}
 
-	// COrrection if requested query outside the range
-	if mint < sketchMin {
-		mint = sketchMin
+	// 	// COrrection if requested query outside the range
+	// if mint < sketchMin {
+	// 	mint = sketchMin
+	// }
+	// if maxt > sketchMax {
+	// 	maxt = sketchMax
+	// }
+
+	// Sliding-window clamp: jaga lebar ~W dan hindari efek "kumulatif" saat warm-up
+	W := queryDuration.Milliseconds()
+
+	// t2 = waktu terbaru yang benar-benar ada di sketch
+	t2 := maxt
+	if t2 > sketchMax {
+		t2 = sketchMax
 	}
-	if maxt > sketchMax {
-		maxt = sketchMax
+
+	// geser t1 agar lebar window W
+	t1 := t2 - W
+	if t1 < sketchMin {
+		// histori belum penuh: kunci t1 di sketchMin, lalu upayakan lebar ~W
+		t1 = sketchMin
+		if t1+W <= sketchMax {
+			t2 = t1 + W
+		} else {
+			// coverage < W: pakai coverage yang ada (tidak membesar tiap detik)
+			t2 = sketchMax
+		}
 	}
+
+	mint, maxt = t1, t2
 
 	// Validasi akhir
 	if maxt <= mint {
@@ -947,7 +972,13 @@ func handleParse(c *gin.Context) {
 
 	log.Printf("[QUERY ENGINE] Final adjusted range: mint=%d maxt=%d", mint, maxt)
 
+	startEval := time.Now()
 	vector, annotations := ps.Eval(funcName, lset, otherArgs, mint, maxt, curTime)
+	// Print every exec steps
+	evalLatency := time.Since(startEval)
+
+	// Logging server-side latency
+	log.Printf("[QUERY ENGINE] ps.Eval latency: %s (%.2f ms)", evalLatency, float64(evalLatency.Microseconds())/1000.0)
 
 	results := []map[string]interface{}{}
 	for _, sample := range vector {
@@ -974,8 +1005,9 @@ func handleParse(c *gin.Context) {
 
 	log.Printf("[QUERY ENGINE] Evaluation successful. Returning %d data points.", len(results))
 	response := gin.H{
-		"status": "success",
-		"data":   results,
+		"status":           "success",
+		"data":             results,
+		"query_latency_ms": float64(evalLatency.Microseconds()) / 1000.0, // presisi ms (float)
 	}
 	if len(annotations) > 0 {
 		response["annotations"] = annotations

@@ -1,6 +1,7 @@
 package promsketch
 
 import (
+	"fmt"
 	"math"
 	"math/rand"
 	"sort"
@@ -260,6 +261,7 @@ func (s *UniformSampling) QuerySum(t1, t2 int64) float64 {
 		sum += s.Arr[i].F
 	}
 	s.mutex.RUnlock()
+	fmt.Printf("sum: %.2f, p=%.4f, sum_rawlike: %.2f\n", sum, s.Sampling_rate, sum/float64(s.Sampling_rate))
 	return sum / float64(s.Sampling_rate)
 }
 
@@ -382,6 +384,9 @@ func (s *UniformSampling) QueryCount(t1, t2 int64) float64 {
 		return math.NaN()
 	}
 	count = float64(idx_2 - idx_1 + 1)
+
+	// print everything and array length and index
+	fmt.Printf("Array Length: %d, Start Index: %d, End Index: %d\n", len(s.Arr), idx_1, idx_2)
 
 	s.mutex.RUnlock()
 	return float64(count) / float64(s.Sampling_rate)
