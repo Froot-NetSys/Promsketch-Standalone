@@ -65,6 +65,21 @@ var maxIngestGoroutines int
 func init() {
 	ps = promsketch.NewPromSketches()
 	log.Println("PromSketches instance initialized")
+	// Mode kompatibel Prometheus (per-bucket)
+	if v := os.Getenv("PROMSKETCH_MODE"); v != "" {
+		if strings.EqualFold(v, "prometheus") || v == "1" || strings.EqualFold(v, "compat") {
+			promsketch.PrometheusMode = true
+			log.Printf("[MODE] Prometheus-compatible ON")
+		}
+	}
+
+	// Ukuran bucket scrape (ms)
+	if v := os.Getenv("PROMSKETCH_SCRAPE_MS"); v != "" {
+		if ms, err := strconv.ParseInt(v, 10, 64); err == nil && ms > 0 {
+			promsketch.ScrapeBucketMs = ms
+			log.Printf("[MODE] Scrape bucket = %d ms", ms)
+		}
+	}
 
 	val := os.Getenv("MAX_INGEST_GOROUTINES")
 	if parsed, err := strconv.Atoi(val); err == nil && parsed > 0 {

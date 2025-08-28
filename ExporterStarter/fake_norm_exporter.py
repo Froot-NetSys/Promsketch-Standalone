@@ -51,7 +51,8 @@ class CustomCollector(Collector):
             value = caida_dataset[self.total_samples]
             self.total_samples += 1
             self.total_samples = self.total_samples % self.caida_length
-            fake_metric.add_metric([f"machine_{i}"], value=value)
+            fake_metric.add_metric([f"machine_{i}"], value=value) 
+            # change the value 0-9
 
         yield fake_metric
 

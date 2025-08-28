@@ -4,9 +4,40 @@ import (
 	"fmt"
 	"math"
 	"math/rand"
+	"os"
 	"sort"
+	"strings"
 	"sync"
 )
+
+// --- Debug helpers -----------------------------------------------------------
+var debugEnabled = func() bool {
+	env := strings.ToLower(os.Getenv("PROMSKETCH_DEBUG"))
+	return env == "1" || env == "true" || env == "yes"
+}()
+
+var debugVerbose = func() bool {
+	env := strings.ToLower(os.Getenv("PROMSKETCH_DEBUG_VERBOSE"))
+	return env == "1" || env == "true" || env == "yes"
+}()
+
+func dbgPrintf(format string, a ...interface{}) {
+	if debugEnabled {
+		fmt.Printf(format, a...)
+	}
+}
+
+var useRaw = func() bool {
+	env := strings.ToLower(os.Getenv("PROMSKETCH_USE_RAW"))
+	return env == "1" || env == "true" || env == "yes"
+}()
+
+// Mode hitung per bucket scrape
+var PrometheusMode bool = false
+
+// Ukuran bucket scrape (ms). Set via env: PROMSKETCH_SCRAPE_MS
+var ScrapeBucketMs int64 = 1000 // default 1s
+// ----------------------------------------------------------------------------
 
 type UniformSampling struct {
 	Arr              []Sample
@@ -245,9 +276,84 @@ func (s *UniformSampling) QueryAvg(t1, t2 int64) float64 {
 	return sum / n
 }
 
+// ===============================================================================
+
+func (s *UniformSampling) QueryCountBuckets(t1, t2 int64) float64 {
+	s.mutex.RLock()
+	defer s.mutex.RUnlock()
+	if len(s.Arr) == 0 {
+		return 0
+	}
+	idx1 := sort.Search(len(s.Arr), func(i int) bool { return s.Arr[i].T >= t1 })
+	idx2 := sort.Search(len(s.Arr), func(i int) bool { return s.Arr[i].T > t2 }) - 1
+	if idx1 > idx2 || idx1 >= len(s.Arr) || idx2 < 0 {
+		return 0
+	}
+	seen := make(map[int64]struct{}, idx2-idx1+1)
+	for i := idx1; i <= idx2; i++ {
+		b := s.Arr[i].T / ScrapeBucketMs
+		seen[b] = struct{}{}
+	}
+	return float64(len(seen)) // TANPA scaling 1/p
+}
+
+func (s *UniformSampling) QuerySumBuckets(t1, t2 int64) float64 {
+	s.mutex.RLock()
+	defer s.mutex.RUnlock()
+	if len(s.Arr) == 0 {
+		return math.NaN()
+	}
+	idx1 := sort.Search(len(s.Arr), func(i int) bool { return s.Arr[i].T >= t1 })
+	idx2 := sort.Search(len(s.Arr), func(i int) bool { return s.Arr[i].T > t2 }) - 1
+	if idx1 > idx2 || idx1 >= len(s.Arr) || idx2 < 0 {
+		return math.NaN()
+	}
+	type lv struct {
+		t int64
+		v float64
+	}
+	last := make(map[int64]lv, idx2-idx1+1)
+	for i := idx1; i <= idx2; i++ {
+		b := s.Arr[i].T / ScrapeBucketMs
+		if cur, ok := last[b]; !ok || s.Arr[i].T >= cur.t {
+			last[b] = lv{t: s.Arr[i].T, v: s.Arr[i].F}
+		}
+	}
+	sum := 0.0
+	for _, x := range last {
+		sum += x.v
+	}
+	return sum // TANPA scaling 1/p
+}
+
+// ===============================================================================
+
+// func (s *UniformSampling) QuerySum(t1, t2 int64) float64 {
+// 	s.mutex.RLock()
+// 	var sum float64 = 0
+
+// 	idx_1 := sort.Search(len(s.Arr), func(i int) bool { return s.Arr[i].T >= t1 })
+// 	idx_2 := sort.Search(len(s.Arr), func(i int) bool { return s.Arr[i].T > t2 }) - 1
+
+// 	if idx_1 >= len(s.Arr) {
+// 		s.mutex.RUnlock()
+// 		return math.NaN()
+// 	}
+
+// 	for i := idx_1; i <= idx_2; i++ {
+// 		sum += s.Arr[i].F
+// 	}
+// 	s.mutex.RUnlock()
+// 	fmt.Printf("sum: %.2f, p=%.4f, sum_rawlike: %.2f\n", sum, s.Sampling_rate, sum/float64(s.Sampling_rate))
+// 	return sum / float64(s.Sampling_rate)
+// }
+
 func (s *UniformSampling) QuerySum(t1, t2 int64) float64 {
 	s.mutex.RLock()
 	var sum float64 = 0
+
+	dbgPrintf("[SUM]   t1=%d t2=%d | cur=%d win=%d p=%.6f size=%d\n",
+		t1, t2, s.Cur_time, s.Time_window_size, s.Sampling_rate, len(s.Arr))
 
 	idx_1 := sort.Search(len(s.Arr), func(i int) bool { return s.Arr[i].T >= t1 })
 	idx_2 := sort.Search(len(s.Arr), func(i int) bool { return s.Arr[i].T > t2 }) - 1
@@ -256,13 +362,46 @@ func (s *UniformSampling) QuerySum(t1, t2 int64) float64 {
 		s.mutex.RUnlock()
 		return math.NaN()
 	}
+	if idx_2 < idx_1 || idx_1 < 0 || idx_2 >= len(s.Arr) {
+		dbgPrintf("[SUM]   no-samples: idx_1=%d idx_2=%d len=%d\n", idx_1, idx_2, len(s.Arr))
+		s.mutex.RUnlock()
+		return math.NaN()
+	}
 
+	first := s.Arr[idx_1]
+	last := s.Arr[idx_2]
 	for i := idx_1; i <= idx_2; i++ {
 		sum += s.Arr[i].F
 	}
 	s.mutex.RUnlock()
-	fmt.Printf("sum: %.2f, p=%.4f, sum_rawlike: %.2f\n", sum, s.Sampling_rate, sum/float64(s.Sampling_rate))
-	return sum / float64(s.Sampling_rate)
+
+	rawLike := sum
+	scale := 1.0
+	if s.Sampling_rate > 0 {
+		scale = 1.0 / s.Sampling_rate
+	}
+	est := rawLike * scale
+
+	dbgPrintf("[SUM]   idx_1=%d idx_2=%d inc=%d | first={t:%d v:%g} last={t:%d v:%g}\n",
+		idx_1, idx_2, (idx_2 - idx_1 + 1), first.T, first.F, last.T, last.F)
+	dbgPrintf("[SUM]   raw=%.6f | est=raw*(1/p)=%.6f (1/p=%.3f)\n", rawLike, est, scale)
+
+	if debugVerbose && len(s.Arr) > 0 {
+		before := idx_1 - 1
+		after := idx_2 + 1
+		if before >= 0 {
+			dbgPrintf("[SUM]   neighbor.before={t:%d v:%g}\n", s.Arr[before].T, s.Arr[before].F)
+		}
+		if after < len(s.Arr) {
+			dbgPrintf("[SUM]   neighbor.after={t:%d v:%g}\n", s.Arr[after].T, s.Arr[after].F)
+		}
+	}
+	if useRaw {
+		dbgPrintf("[SUM]   returning RAW (no 1/p scaling)\n")
+		return rawLike
+	}
+
+	return est
 }
 
 func (s *UniformSampling) QueryStddev(t1, t2 int64) float64 {
@@ -373,9 +512,32 @@ func (s *UniformSampling) QuerySum2(t1, t2 int64) float64 {
 	return sum2 / float64(s.Sampling_rate)
 }
 
+// func (s *UniformSampling) QueryCount(t1, t2 int64) float64 {
+// 	s.mutex.RLock()
+// 	var count float64 = 0
+// 	idx_1 := sort.Search(len(s.Arr), func(i int) bool { return s.Arr[i].T >= t1 })
+// 	idx_2 := sort.Search(len(s.Arr), func(i int) bool { return s.Arr[i].T > t2 }) - 1
+
+// 	if idx_1 >= len(s.Arr) {
+// 		s.mutex.RUnlock()
+// 		return math.NaN()
+// 	}
+// 	count = float64(idx_2 - idx_1 + 1)
+
+// 	// print everything and array length and index
+// 	fmt.Printf("Array Length: %d, Start Index: %d, End Index: %d\n", len(s.Arr), idx_1, idx_2)
+
+// 	s.mutex.RUnlock()
+// 	return float64(count) / float64(s.Sampling_rate)
+// }
+
 func (s *UniformSampling) QueryCount(t1, t2 int64) float64 {
 	s.mutex.RLock()
 	var count float64 = 0
+
+	dbgPrintf("[COUNT] t1=%d t2=%d | cur=%d win=%d p=%.6f size=%d\n",
+		t1, t2, s.Cur_time, s.Time_window_size, s.Sampling_rate, len(s.Arr))
+
 	idx_1 := sort.Search(len(s.Arr), func(i int) bool { return s.Arr[i].T >= t1 })
 	idx_2 := sort.Search(len(s.Arr), func(i int) bool { return s.Arr[i].T > t2 }) - 1
 
@@ -383,13 +545,34 @@ func (s *UniformSampling) QueryCount(t1, t2 int64) float64 {
 		s.mutex.RUnlock()
 		return math.NaN()
 	}
+	if idx_2 < idx_1 || idx_1 < 0 || idx_2 >= len(s.Arr) {
+		dbgPrintf("[COUNT] no-samples: idx_1=%d idx_2=%d len=%d\n", idx_1, idx_2, len(s.Arr))
+		s.mutex.RUnlock()
+		return math.NaN()
+	}
+
+	first := s.Arr[idx_1]
+	last := s.Arr[idx_2]
 	count = float64(idx_2 - idx_1 + 1)
 
-	// print everything and array length and index
-	fmt.Printf("Array Length: %d, Start Index: %d, End Index: %d\n", len(s.Arr), idx_1, idx_2)
+	dbgPrintf("[COUNT] idx_1=%d idx_2=%d inc=%d | first={t:%d} last={t:%d}\n",
+		idx_1, idx_2, int(count), first.T, last.T)
 
 	s.mutex.RUnlock()
-	return float64(count) / float64(s.Sampling_rate)
+
+	scale := 1.0
+	if s.Sampling_rate > 0 {
+		scale = 1.0 / s.Sampling_rate
+	}
+	est := float64(count) * scale
+
+	dbgPrintf("[COUNT] raw=%d | est=raw*(1/p)=%.6f (1/p=%.3f)\n", int(count), est, scale)
+
+	if useRaw {
+		dbgPrintf("[COUNT] returning RAW (no 1/p scaling)\n")
+		return float64(count)
+	}
+	return est
 }
 
 func (s *UniformSampling) QueryL1(t1, t2 int64) float64 {

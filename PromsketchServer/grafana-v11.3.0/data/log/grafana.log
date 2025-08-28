@@ -2263,3 +2263,200 @@ logger=tracing t=2025-08-11T21:58:33.847863584+07:00 level=info msg="Closing tra
 logger=ticker t=2025-08-11T21:58:33.847986506+07:00 level=info msg=stopped last_tick=2025-08-11T21:58:30+07:00
 logger=grafana-apiserver t=2025-08-11T21:58:33.84801966+07:00 level=info msg="StorageObjectCountTracker pruner is exiting"
 logger=plugin.hamedkarbasi93-kafka-datasource t=2025-08-11T21:58:33.85153404+07:00 level=info msg="plugin process exited" plugin=/mnt/78D8516BD8512920/GARUDA_ACE/FROOT-LAB/promsketch-standalone/PromsketchServer/grafana-v11.3.0/data/plugins/hamedkarbasi93-kafka-datasource/gpx_kafka-datasource_linux_amd64 id=20888
+logger=settings t=2025-08-28T23:29:18.05281175+07:00 level=info msg="Starting Grafana" version=11.3.0 commit=d9455ff7db73b694db7d412e49a68bec767f2b5a branch=HEAD compiled=2025-08-28T23:29:18+07:00
+logger=settings t=2025-08-28T23:29:18.05325678+07:00 level=info msg="Config loaded from" file=/mnt/78D8516BD8512920/GARUDA_ACE/FROOT-LAB/promsketch-standalone/PromsketchServer/grafana-v11.3.0/conf/defaults.ini
+logger=settings t=2025-08-28T23:29:18.053358981+07:00 level=info msg=Target target=[all]
+logger=settings t=2025-08-28T23:29:18.053472999+07:00 level=info msg="Path Home" path=/mnt/78D8516BD8512920/GARUDA_ACE/FROOT-LAB/promsketch-standalone/PromsketchServer/grafana-v11.3.0
+logger=settings t=2025-08-28T23:29:18.053516958+07:00 level=info msg="Path Data" path=/mnt/78D8516BD8512920/GARUDA_ACE/FROOT-LAB/promsketch-standalone/PromsketchServer/grafana-v11.3.0/data
+logger=settings t=2025-08-28T23:29:18.053559159+07:00 level=info msg="Path Logs" path=/mnt/78D8516BD8512920/GARUDA_ACE/FROOT-LAB/promsketch-standalone/PromsketchServer/grafana-v11.3.0/data/log
+logger=settings t=2025-08-28T23:29:18.053593891+07:00 level=info msg="Path Plugins" path=/mnt/78D8516BD8512920/GARUDA_ACE/FROOT-LAB/promsketch-standalone/PromsketchServer/grafana-v11.3.0/data/plugins
+logger=settings t=2025-08-28T23:29:18.053625669+07:00 level=info msg="Path Provisioning" path=/mnt/78D8516BD8512920/GARUDA_ACE/FROOT-LAB/promsketch-standalone/PromsketchServer/grafana-v11.3.0/conf/provisioning
+logger=settings t=2025-08-28T23:29:18.053658143+07:00 level=info msg="App mode production"
+logger=featuremgmt t=2025-08-28T23:29:18.053904293+07:00 level=info msg=FeatureToggles exploreMetrics=true topnav=true prometheusConfigOverhaulAuth=true notificationBanner=true cloudWatchCrossAccountQuerying=true cloudWatchRoundUpEndTime=true dashboardScene=true correlations=true alertingSimplifiedRouting=true accessControlOnCall=true logRowsPopoverMenu=true tlsMemcached=true influxdbBackendMigration=true lokiQuerySplitting=true autoMigrateXYChartPanel=true promQLScope=true groupToNestedTableTransformation=true formatString=true transformationsVariableSupport=true prometheusAzureOverrideAudience=true openSearchBackendFlowEnabled=true kubernetesPlaylists=true annotationPermissionUpdate=true nestedFolders=true alertingNoDataErrorExecution=true recoveryThreshold=true prometheusMetricEncyclopedia=true angularDeprecationUI=true lokiMetricDataplane=true logsExploreTableVisualisation=true dataplaneFrontendFallback=true awsAsyncQueryCaching=true transformationsRedesign=true cloudWatchNewLabelParsing=true ssoSettingsApi=true publicDashboards=true publicDashboardsScene=true logsContextDatasourceUi=true addFieldFromCalculationStatFunctions=true logsInfiniteScrolling=true alertingInsights=true panelMonitoring=true lokiQueryHints=true recordedQueriesMulti=true dashboardSceneForViewers=true dashgpt=true pinNavItems=true lokiStructuredMetadata=true managedPluginsInstall=true dashboardSceneSolo=true
+logger=sqlstore t=2025-08-28T23:29:18.054427183+07:00 level=info msg="Connecting to DB" dbtype=sqlite3
+logger=sqlstore t=2025-08-28T23:29:18.054514285+07:00 level=warn msg="SQLite database file has broader permissions than it should" path=/mnt/78D8516BD8512920/GARUDA_ACE/FROOT-LAB/promsketch-standalone/PromsketchServer/grafana-v11.3.0/data/grafana.db mode=-rwxrwxrwx expected=-rw-r-----
+logger=migrator t=2025-08-28T23:29:18.084953341+07:00 level=info msg="Locking database"
+logger=migrator t=2025-08-28T23:29:18.085078605+07:00 level=info msg="Starting DB migrations"
+logger=migrator t=2025-08-28T23:29:18.107328091+07:00 level=info msg="migrations completed" performed=0 skipped=704 duration=453.675µs
+logger=migrator t=2025-08-28T23:29:18.107947536+07:00 level=info msg="Unlocking database"
+logger=licensing t=2025-08-28T23:29:18.109108206+07:00 level=info msg="Validated license token" appURL=http://localhost:3000/ source=disk status=NotFound
+logger=secrets t=2025-08-28T23:29:18.109236613+07:00 level=info msg="Envelope encryption state" enabled=true currentprovider=secretKey.v1
+logger=plugin.angulardetectorsprovider.dynamic t=2025-08-28T23:29:18.15348+07:00 level=info msg="Restored cache from database" duration=751.167µs
+logger=plugin.store t=2025-08-28T23:29:18.161446244+07:00 level=info msg="Loading plugins..."
+logger=plugins.registration t=2025-08-28T23:29:18.28027647+07:00 level=error msg="Could not register plugin" pluginId=xychart error="plugin xychart is already registered"
+logger=plugins.initialization t=2025-08-28T23:29:18.280388957+07:00 level=error msg="Could not initialize plugin" pluginId=xychart error="plugin xychart is already registered"
+logger=plugins.registration t=2025-08-28T23:29:18.335562842+07:00 level=info msg="Plugin registered" pluginId=grafana-lokiexplore-app
+logger=plugins.registration t=2025-08-28T23:29:18.61068854+07:00 level=info msg="Plugin registered" pluginId=hamedkarbasi93-kafka-datasource
+logger=plugin.store t=2025-08-28T23:29:18.610793835+07:00 level=info msg="Plugins loaded" count=56 duration=449.347999ms
+logger=caching.service t=2025-08-28T23:29:18.615814197+07:00 level=info msg="Caching service is disabled"
+logger=query_data t=2025-08-28T23:29:18.623519229+07:00 level=info msg="Query Service initialization"
+logger=live.push_http t=2025-08-28T23:29:18.631815002+07:00 level=info msg="Live Push Gateway initialization"
+logger=ngalert.notifier.alertmanager org=1 t=2025-08-28T23:29:18.638469123+07:00 level=info msg="Applying new configuration to Alertmanager" configHash=d2c56faca6af2a5772ff4253222f7386
+logger=ngalert.state.manager t=2025-08-28T23:29:18.653035849+07:00 level=info msg="Running in alternative execution of Error/NoData mode"
+logger=infra.usagestats.collector t=2025-08-28T23:29:18.663926495+07:00 level=info msg="registering usage stat providers" usageStatsProvidersLen=3
+logger=provisioning.alerting t=2025-08-28T23:29:18.6655766+07:00 level=info msg="starting to provision alerting"
+logger=provisioning.alerting t=2025-08-28T23:29:18.665630588+07:00 level=info msg="finished to provision alerting"
+logger=report t=2025-08-28T23:29:18.668822084+07:00 level=warn msg="Scheduling and sending of reports disabled, SMTP is not configured and enabled. Configure SMTP to enable."
+logger=ngalert.multiorg.alertmanager t=2025-08-28T23:29:18.670488797+07:00 level=info msg="Starting MultiOrg Alertmanager"
+logger=grafanaStorageLogger t=2025-08-28T23:29:18.668805981+07:00 level=info msg="Storage starting"
+logger=ngalert.state.manager t=2025-08-28T23:29:18.674312826+07:00 level=info msg="Warming state cache for startup"
+logger=ngalert.state.manager t=2025-08-28T23:29:18.681202206+07:00 level=info msg="State cache has been initialized" states=0 duration=11.403579ms
+logger=ngalert.scheduler t=2025-08-28T23:29:18.681342431+07:00 level=info msg="Starting scheduler" tickInterval=10s maxAttempts=1
+logger=ticker t=2025-08-28T23:29:18.682092942+07:00 level=info msg=starting first_tick=2025-08-28T23:29:20+07:00
+logger=http.server t=2025-08-28T23:29:18.684317625+07:00 level=info msg="HTTP Server Listen" address=[::]:3000 protocol=http subUrl= socket=
+logger=provisioning.dashboard t=2025-08-28T23:29:18.764344424+07:00 level=info msg="starting to provision dashboards"
+logger=provisioning.dashboard t=2025-08-28T23:29:18.764450431+07:00 level=info msg="finished to provision dashboards"
+logger=grafana.update.checker t=2025-08-28T23:29:18.947169255+07:00 level=info msg="Update check succeeded" duration=280.976555ms
+logger=plugins.update.checker t=2025-08-28T23:29:18.94891194+07:00 level=info msg="Update check succeeded" duration=280.395653ms
+logger=grafana-apiserver t=2025-08-28T23:29:18.987073708+07:00 level=info msg="Adding GroupVersion playlist.grafana.app v0alpha1 to ResourceManager"
+logger=grafana-apiserver t=2025-08-28T23:29:18.9875905+07:00 level=info msg="Adding GroupVersion featuretoggle.grafana.app v0alpha1 to ResourceManager"
+logger=grafana-apiserver t=2025-08-28T23:29:18.991101075+07:00 level=info msg="Adding GroupVersion iam.grafana.app v0alpha1 to ResourceManager"
+logger=plugin.angulardetectorsprovider.dynamic t=2025-08-28T23:29:18.996366156+07:00 level=info msg="Patterns update finished" duration=267.025875ms
+logger=context userId=0 orgId=0 uname= t=2025-08-28T23:29:24.548671427+07:00 level=info msg="Request Completed" method=GET path=/ status=302 remote_addr=[::1] time_ms=7 duration=7.498759ms size=29 referer= handler=/ status_source=server
+logger=context userId=1 orgId=1 uname=admin t=2025-08-28T23:29:37.940268797+07:00 level=info msg="Request Completed" method=GET path=/api/live/ws status=-1 remote_addr=[::1] time_ms=3 duration=3.083789ms size=0 referer= handler=/api/live/ws status_source=server
+logger=infra.usagestats t=2025-08-28T23:30:24.675799994+07:00 level=info msg="Usage stats are ready to report"
+logger=context userId=1 orgId=1 uname=admin t=2025-08-28T23:34:47.369082657+07:00 level=info msg="Request Completed" method=GET path=/api/live/ws status=-1 remote_addr=[::1] time_ms=3 duration=3.489911ms size=0 referer= handler=/api/live/ws status_source=server
+logger=cleanup t=2025-08-28T23:39:18.704786928+07:00 level=info msg="Completed cleanup jobs" duration=22.943402ms
+logger=plugins.update.checker t=2025-08-28T23:39:19.215086913+07:00 level=info msg="Update check succeeded" duration=265.820657ms
+logger=cleanup t=2025-08-28T23:49:18.684195476+07:00 level=info msg="Completed cleanup jobs" duration=2.809382ms
+logger=plugins.update.checker t=2025-08-28T23:49:19.225725554+07:00 level=info msg="Update check succeeded" duration=275.46295ms
+logger=server t=2025-08-28T23:51:17.928697221+07:00 level=info msg="Shutdown started" reason="System signal: interrupt"
+logger=ticker t=2025-08-28T23:51:17.929144817+07:00 level=info msg=stopped last_tick=2025-08-28T23:51:10+07:00
+logger=tracing t=2025-08-28T23:51:17.929286058+07:00 level=info msg="Closing tracing"
+logger=grafana-apiserver t=2025-08-28T23:51:17.92927133+07:00 level=info msg="StorageObjectCountTracker pruner is exiting"
+logger=plugin.hamedkarbasi93-kafka-datasource t=2025-08-28T23:51:17.999005306+07:00 level=info msg="plugin process exited" plugin=/mnt/78D8516BD8512920/GARUDA_ACE/FROOT-LAB/promsketch-standalone/PromsketchServer/grafana-v11.3.0/data/plugins/hamedkarbasi93-kafka-datasource/gpx_kafka-datasource_linux_amd64 id=171184
+logger=settings t=2025-08-29T00:10:46.770463749+07:00 level=info msg="Starting Grafana" version=11.3.0 commit=d9455ff7db73b694db7d412e49a68bec767f2b5a branch=HEAD compiled=2025-08-29T00:10:46+07:00
+logger=settings t=2025-08-29T00:10:46.770729704+07:00 level=info msg="Config loaded from" file=/mnt/78D8516BD8512920/GARUDA_ACE/FROOT-LAB/promsketch-standalone/PromsketchServer/grafana-v11.3.0/conf/defaults.ini
+logger=settings t=2025-08-29T00:10:46.770765469+07:00 level=info msg=Target target=[all]
+logger=settings t=2025-08-29T00:10:46.770794062+07:00 level=info msg="Path Home" path=/mnt/78D8516BD8512920/GARUDA_ACE/FROOT-LAB/promsketch-standalone/PromsketchServer/grafana-v11.3.0
+logger=settings t=2025-08-29T00:10:46.770853544+07:00 level=info msg="Path Data" path=/mnt/78D8516BD8512920/GARUDA_ACE/FROOT-LAB/promsketch-standalone/PromsketchServer/grafana-v11.3.0/data
+logger=settings t=2025-08-29T00:10:46.77088188+07:00 level=info msg="Path Logs" path=/mnt/78D8516BD8512920/GARUDA_ACE/FROOT-LAB/promsketch-standalone/PromsketchServer/grafana-v11.3.0/data/log
+logger=settings t=2025-08-29T00:10:46.77090585+07:00 level=info msg="Path Plugins" path=/mnt/78D8516BD8512920/GARUDA_ACE/FROOT-LAB/promsketch-standalone/PromsketchServer/grafana-v11.3.0/data/plugins
+logger=settings t=2025-08-29T00:10:46.770930399+07:00 level=info msg="Path Provisioning" path=/mnt/78D8516BD8512920/GARUDA_ACE/FROOT-LAB/promsketch-standalone/PromsketchServer/grafana-v11.3.0/conf/provisioning
+logger=settings t=2025-08-29T00:10:46.770956763+07:00 level=info msg="App mode production"
+logger=featuremgmt t=2025-08-29T00:10:46.771136776+07:00 level=info msg=FeatureToggles logsExploreTableVisualisation=true formatString=true autoMigrateXYChartPanel=true awsAsyncQueryCaching=true prometheusConfigOverhaulAuth=true cloudWatchCrossAccountQuerying=true lokiQuerySplitting=true addFieldFromCalculationStatFunctions=true recoveryThreshold=true openSearchBackendFlowEnabled=true publicDashboards=true dashboardScene=true tlsMemcached=true prometheusAzureOverrideAudience=true dashboardSceneSolo=true dashgpt=true accessControlOnCall=true cloudWatchRoundUpEndTime=true managedPluginsInstall=true groupToNestedTableTransformation=true alertingSimplifiedRouting=true logsInfiniteScrolling=true recordedQueriesMulti=true notificationBanner=true lokiMetricDataplane=true cloudWatchNewLabelParsing=true alertingInsights=true pinNavItems=true transformationsRedesign=true logRowsPopoverMenu=true topnav=true annotationPermissionUpdate=true lokiStructuredMetadata=true dataplaneFrontendFallback=true angularDeprecationUI=true publicDashboardsScene=true ssoSettingsApi=true alertingNoDataErrorExecution=true lokiQueryHints=true transformationsVariableSupport=true kubernetesPlaylists=true correlations=true influxdbBackendMigration=true prometheusMetricEncyclopedia=true exploreMetrics=true promQLScope=true dashboardSceneForViewers=true logsContextDatasourceUi=true nestedFolders=true panelMonitoring=true
+logger=sqlstore t=2025-08-29T00:10:46.771217654+07:00 level=info msg="Connecting to DB" dbtype=sqlite3
+logger=sqlstore t=2025-08-29T00:10:46.771286433+07:00 level=warn msg="SQLite database file has broader permissions than it should" path=/mnt/78D8516BD8512920/GARUDA_ACE/FROOT-LAB/promsketch-standalone/PromsketchServer/grafana-v11.3.0/data/grafana.db mode=-rwxrwxrwx expected=-rw-r-----
+logger=migrator t=2025-08-29T00:10:46.775936968+07:00 level=info msg="Locking database"
+logger=migrator t=2025-08-29T00:10:46.776038334+07:00 level=info msg="Starting DB migrations"
+logger=migrator t=2025-08-29T00:10:46.785636808+07:00 level=info msg="migrations completed" performed=0 skipped=704 duration=448.161µs
+logger=migrator t=2025-08-29T00:10:46.78615967+07:00 level=info msg="Unlocking database"
+logger=licensing t=2025-08-29T00:10:46.787045374+07:00 level=info msg="Validated license token" appURL=http://localhost:3000/ source=disk status=NotFound
+logger=secrets t=2025-08-29T00:10:46.78723415+07:00 level=info msg="Envelope encryption state" enabled=true currentprovider=secretKey.v1
+logger=plugin.angulardetectorsprovider.dynamic t=2025-08-29T00:10:46.82429531+07:00 level=info msg="Restored cache from database" duration=457.462µs
+logger=plugin.store t=2025-08-29T00:10:46.82487253+07:00 level=info msg="Loading plugins..."
+logger=plugins.registration t=2025-08-29T00:10:46.89780008+07:00 level=error msg="Could not register plugin" pluginId=xychart error="plugin xychart is already registered"
+logger=plugins.initialization t=2025-08-29T00:10:46.897926969+07:00 level=error msg="Could not initialize plugin" pluginId=xychart error="plugin xychart is already registered"
+logger=plugins.registration t=2025-08-29T00:10:46.919884901+07:00 level=info msg="Plugin registered" pluginId=grafana-lokiexplore-app
+logger=plugins.registration t=2025-08-29T00:10:47.037283985+07:00 level=info msg="Plugin registered" pluginId=hamedkarbasi93-kafka-datasource
+logger=plugin.store t=2025-08-29T00:10:47.037484573+07:00 level=info msg="Plugins loaded" count=56 duration=212.612622ms
+logger=caching.service t=2025-08-29T00:10:47.039313786+07:00 level=info msg="Caching service is disabled"
+logger=query_data t=2025-08-29T00:10:47.0425813+07:00 level=info msg="Query Service initialization"
+logger=live.push_http t=2025-08-29T00:10:47.046960705+07:00 level=info msg="Live Push Gateway initialization"
+logger=ngalert.notifier.alertmanager org=1 t=2025-08-29T00:10:47.050786246+07:00 level=info msg="Applying new configuration to Alertmanager" configHash=d2c56faca6af2a5772ff4253222f7386
+logger=ngalert.state.manager t=2025-08-29T00:10:47.173530983+07:00 level=info msg="Running in alternative execution of Error/NoData mode"
+logger=infra.usagestats.collector t=2025-08-29T00:10:47.1757557+07:00 level=info msg="registering usage stat providers" usageStatsProvidersLen=3
+logger=provisioning.alerting t=2025-08-29T00:10:47.17719318+07:00 level=info msg="starting to provision alerting"
+logger=provisioning.alerting t=2025-08-29T00:10:47.177245836+07:00 level=info msg="finished to provision alerting"
+logger=grafanaStorageLogger t=2025-08-29T00:10:47.17745975+07:00 level=info msg="Storage starting"
+logger=ngalert.state.manager t=2025-08-29T00:10:47.177524963+07:00 level=info msg="Warming state cache for startup"
+logger=report t=2025-08-29T00:10:47.177982776+07:00 level=warn msg="Scheduling and sending of reports disabled, SMTP is not configured and enabled. Configure SMTP to enable."
+logger=ngalert.multiorg.alertmanager t=2025-08-29T00:10:47.177581239+07:00 level=info msg="Starting MultiOrg Alertmanager"
+logger=provisioning.dashboard t=2025-08-29T00:10:47.178973032+07:00 level=info msg="starting to provision dashboards"
+logger=provisioning.dashboard t=2025-08-29T00:10:47.179100353+07:00 level=info msg="finished to provision dashboards"
+logger=http.server t=2025-08-29T00:10:47.180171459+07:00 level=info msg="HTTP Server Listen" address=[::]:3000 protocol=http subUrl= socket=
+logger=ngalert.state.manager t=2025-08-29T00:10:47.223823149+07:00 level=info msg="State cache has been initialized" states=0 duration=46.298064ms
+logger=ngalert.scheduler t=2025-08-29T00:10:47.223943734+07:00 level=info msg="Starting scheduler" tickInterval=10s maxAttempts=1
+logger=ticker t=2025-08-29T00:10:47.224034599+07:00 level=info msg=starting first_tick=2025-08-29T00:10:50+07:00
+logger=grafana-apiserver t=2025-08-29T00:10:47.346409035+07:00 level=info msg="Adding GroupVersion playlist.grafana.app v0alpha1 to ResourceManager"
+logger=grafana-apiserver t=2025-08-29T00:10:47.347070589+07:00 level=info msg="Adding GroupVersion featuretoggle.grafana.app v0alpha1 to ResourceManager"
+logger=grafana-apiserver t=2025-08-29T00:10:47.347863465+07:00 level=info msg="Adding GroupVersion iam.grafana.app v0alpha1 to ResourceManager"
+logger=plugins.update.checker t=2025-08-29T00:10:47.508298917+07:00 level=info msg="Update check succeeded" duration=330.921927ms
+logger=grafana.update.checker t=2025-08-29T00:10:47.509183263+07:00 level=info msg="Update check succeeded" duration=331.806762ms
+logger=server t=2025-08-29T00:10:47.873221469+07:00 level=info msg="Shutdown started" reason="System signal: interrupt"
+logger=tracing t=2025-08-29T00:10:47.873889292+07:00 level=info msg="Closing tracing"
+logger=grafana-apiserver t=2025-08-29T00:10:47.87393118+07:00 level=info msg="StorageObjectCountTracker pruner is exiting"
+logger=ticker t=2025-08-29T00:10:47.874015594+07:00 level=info msg=stopped last_tick=2025-08-29T00:10:40+07:00
+logger=plugin.hamedkarbasi93-kafka-datasource t=2025-08-29T00:10:47.876136745+07:00 level=info msg="plugin process exited" plugin=/mnt/78D8516BD8512920/GARUDA_ACE/FROOT-LAB/promsketch-standalone/PromsketchServer/grafana-v11.3.0/data/plugins/hamedkarbasi93-kafka-datasource/gpx_kafka-datasource_linux_amd64 id=338847
+logger=settings t=2025-08-29T00:11:12.579172312+07:00 level=info msg="Starting Grafana" version=11.3.0 commit=d9455ff7db73b694db7d412e49a68bec767f2b5a branch=HEAD compiled=2025-08-29T00:11:12+07:00
+logger=settings t=2025-08-29T00:11:12.579506532+07:00 level=info msg="Config loaded from" file=/mnt/78D8516BD8512920/GARUDA_ACE/FROOT-LAB/promsketch-standalone/PromsketchServer/grafana-v11.3.0/conf/defaults.ini
+logger=settings t=2025-08-29T00:11:12.57957425+07:00 level=info msg=Target target=[all]
+logger=settings t=2025-08-29T00:11:12.579613221+07:00 level=info msg="Path Home" path=/mnt/78D8516BD8512920/GARUDA_ACE/FROOT-LAB/promsketch-standalone/PromsketchServer/grafana-v11.3.0
+logger=settings t=2025-08-29T00:11:12.57964497+07:00 level=info msg="Path Data" path=/mnt/78D8516BD8512920/GARUDA_ACE/FROOT-LAB/promsketch-standalone/PromsketchServer/grafana-v11.3.0/data
+logger=settings t=2025-08-29T00:11:12.579671015+07:00 level=info msg="Path Logs" path=/mnt/78D8516BD8512920/GARUDA_ACE/FROOT-LAB/promsketch-standalone/PromsketchServer/grafana-v11.3.0/data/log
+logger=settings t=2025-08-29T00:11:12.579697769+07:00 level=info msg="Path Plugins" path=/mnt/78D8516BD8512920/GARUDA_ACE/FROOT-LAB/promsketch-standalone/PromsketchServer/grafana-v11.3.0/data/plugins
+logger=settings t=2025-08-29T00:11:12.579724034+07:00 level=info msg="Path Provisioning" path=/mnt/78D8516BD8512920/GARUDA_ACE/FROOT-LAB/promsketch-standalone/PromsketchServer/grafana-v11.3.0/conf/provisioning
+logger=settings t=2025-08-29T00:11:12.579749307+07:00 level=info msg="App mode production"
+logger=featuremgmt t=2025-08-29T00:11:12.579990899+07:00 level=info msg=FeatureToggles logsInfiniteScrolling=true logsContextDatasourceUi=true lokiQuerySplitting=true lokiMetricDataplane=true pinNavItems=true dashboardScene=true influxdbBackendMigration=true prometheusConfigOverhaulAuth=true transformationsVariableSupport=true openSearchBackendFlowEnabled=true cloudWatchRoundUpEndTime=true transformationsRedesign=true cloudWatchCrossAccountQuerying=true accessControlOnCall=true angularDeprecationUI=true exploreMetrics=true logsExploreTableVisualisation=true recordedQueriesMulti=true lokiQueryHints=true groupToNestedTableTransformation=true tlsMemcached=true alertingSimplifiedRouting=true lokiStructuredMetadata=true formatString=true dataplaneFrontendFallback=true promQLScope=true kubernetesPlaylists=true addFieldFromCalculationStatFunctions=true managedPluginsInstall=true panelMonitoring=true autoMigrateXYChartPanel=true dashboardSceneForViewers=true cloudWatchNewLabelParsing=true ssoSettingsApi=true topnav=true logRowsPopoverMenu=true publicDashboards=true prometheusAzureOverrideAudience=true notificationBanner=true awsAsyncQueryCaching=true alertingNoDataErrorExecution=true dashboardSceneSolo=true annotationPermissionUpdate=true publicDashboardsScene=true prometheusMetricEncyclopedia=true nestedFolders=true dashgpt=true correlations=true recoveryThreshold=true alertingInsights=true
+logger=sqlstore t=2025-08-29T00:11:12.580097901+07:00 level=info msg="Connecting to DB" dbtype=sqlite3
+logger=sqlstore t=2025-08-29T00:11:12.580166214+07:00 level=warn msg="SQLite database file has broader permissions than it should" path=/mnt/78D8516BD8512920/GARUDA_ACE/FROOT-LAB/promsketch-standalone/PromsketchServer/grafana-v11.3.0/data/grafana.db mode=-rwxrwxrwx expected=-rw-r-----
+logger=migrator t=2025-08-29T00:11:12.585574495+07:00 level=info msg="Locking database"
+logger=migrator t=2025-08-29T00:11:12.585650751+07:00 level=info msg="Starting DB migrations"
+logger=migrator t=2025-08-29T00:11:12.598726362+07:00 level=info msg="migrations completed" performed=0 skipped=704 duration=422.24µs
+logger=migrator t=2025-08-29T00:11:12.599304156+07:00 level=info msg="Unlocking database"
+logger=licensing t=2025-08-29T00:11:12.599840774+07:00 level=info msg="Validated license token" appURL=http://localhost:3000/ source=disk status=NotFound
+logger=secrets t=2025-08-29T00:11:12.599899179+07:00 level=info msg="Envelope encryption state" enabled=true currentprovider=secretKey.v1
+logger=plugin.angulardetectorsprovider.dynamic t=2025-08-29T00:11:12.635689157+07:00 level=info msg="Restored cache from database" duration=451.262µs
+logger=plugin.store t=2025-08-29T00:11:12.636357288+07:00 level=info msg="Loading plugins..."
+logger=plugins.registration t=2025-08-29T00:11:12.760674526+07:00 level=error msg="Could not register plugin" pluginId=xychart error="plugin xychart is already registered"
+logger=plugins.initialization t=2025-08-29T00:11:12.760808534+07:00 level=error msg="Could not initialize plugin" pluginId=xychart error="plugin xychart is already registered"
+logger=plugins.registration t=2025-08-29T00:11:12.78501229+07:00 level=info msg="Plugin registered" pluginId=grafana-lokiexplore-app
+logger=plugins.registration t=2025-08-29T00:11:12.915052721+07:00 level=info msg="Plugin registered" pluginId=hamedkarbasi93-kafka-datasource
+logger=plugin.store t=2025-08-29T00:11:12.91516777+07:00 level=info msg="Plugins loaded" count=56 duration=278.810665ms
+logger=caching.service t=2025-08-29T00:11:12.917213757+07:00 level=info msg="Caching service is disabled"
+logger=query_data t=2025-08-29T00:11:12.920669294+07:00 level=info msg="Query Service initialization"
+logger=live.push_http t=2025-08-29T00:11:12.925489896+07:00 level=info msg="Live Push Gateway initialization"
+logger=ngalert.notifier.alertmanager org=1 t=2025-08-29T00:11:12.927627567+07:00 level=info msg="Applying new configuration to Alertmanager" configHash=d2c56faca6af2a5772ff4253222f7386
+logger=ngalert.state.manager t=2025-08-29T00:11:12.937622084+07:00 level=info msg="Running in alternative execution of Error/NoData mode"
+logger=infra.usagestats.collector t=2025-08-29T00:11:12.939559877+07:00 level=info msg="registering usage stat providers" usageStatsProvidersLen=3
+logger=provisioning.alerting t=2025-08-29T00:11:12.940737194+07:00 level=info msg="starting to provision alerting"
+logger=provisioning.alerting t=2025-08-29T00:11:12.940789891+07:00 level=info msg="finished to provision alerting"
+logger=report t=2025-08-29T00:11:12.940933954+07:00 level=warn msg="Scheduling and sending of reports disabled, SMTP is not configured and enabled. Configure SMTP to enable."
+logger=grafanaStorageLogger t=2025-08-29T00:11:12.9409801+07:00 level=info msg="Storage starting"
+logger=ngalert.state.manager t=2025-08-29T00:11:12.941236576+07:00 level=info msg="Warming state cache for startup"
+logger=ngalert.multiorg.alertmanager t=2025-08-29T00:11:12.941262274+07:00 level=info msg="Starting MultiOrg Alertmanager"
+logger=http.server t=2025-08-29T00:11:12.943322644+07:00 level=info msg="HTTP Server Listen" address=[::]:3000 protocol=http subUrl= socket=
+logger=ngalert.state.manager t=2025-08-29T00:11:12.968139725+07:00 level=info msg="State cache has been initialized" states=0 duration=26.901017ms
+logger=ngalert.scheduler t=2025-08-29T00:11:12.968235545+07:00 level=info msg="Starting scheduler" tickInterval=10s maxAttempts=1
+logger=ticker t=2025-08-29T00:11:12.968370904+07:00 level=info msg=starting first_tick=2025-08-29T00:11:20+07:00
+logger=provisioning.dashboard t=2025-08-29T00:11:13.004167243+07:00 level=info msg="starting to provision dashboards"
+logger=provisioning.dashboard t=2025-08-29T00:11:13.004291594+07:00 level=info msg="finished to provision dashboards"
+logger=grafana-apiserver t=2025-08-29T00:11:13.076688757+07:00 level=info msg="Adding GroupVersion featuretoggle.grafana.app v0alpha1 to ResourceManager"
+logger=grafana-apiserver t=2025-08-29T00:11:13.077843719+07:00 level=info msg="Adding GroupVersion iam.grafana.app v0alpha1 to ResourceManager"
+logger=grafana-apiserver t=2025-08-29T00:11:13.078296435+07:00 level=info msg="Adding GroupVersion playlist.grafana.app v0alpha1 to ResourceManager"
+logger=grafana.update.checker t=2025-08-29T00:11:13.207010833+07:00 level=info msg="Update check succeeded" duration=265.822871ms
+logger=plugins.update.checker t=2025-08-29T00:11:13.209801239+07:00 level=info msg="Update check succeeded" duration=268.301384ms
+logger=context userId=0 orgId=0 uname= t=2025-08-29T00:11:15.677626898+07:00 level=info msg="Request Completed" method=GET path=/api/live/ws status=401 remote_addr=[::1] time_ms=88 duration=88.387193ms size=105 referer= handler=/api/live/ws status_source=server
+logger=context userId=0 orgId=0 uname= t=2025-08-29T00:11:18.885970699+07:00 level=info msg="Request Completed" method=GET path=/api/live/ws status=401 remote_addr=[::1] time_ms=1 duration=1.162433ms size=105 referer= handler=/api/live/ws status_source=server
+logger=context userId=0 orgId=0 uname= t=2025-08-29T00:11:21.205633637+07:00 level=info msg="Request Completed" method=GET path=/dashboard/new status=302 remote_addr=[::1] time_ms=0 duration=992.091µs size=47 referer=http://localhost:3000/login handler=/dashboard/new status_source=server
+logger=context userId=0 orgId=0 uname= t=2025-08-29T00:11:21.216583402+07:00 level=info msg="Request Completed" method=GET path=/user/auth-tokens/rotate status=302 remote_addr=[::1] time_ms=8 duration=8.898623ms size=97 referer=http://localhost:3000/login handler=/user/auth-tokens/rotate status_source=server
+logger=context userId=1 orgId=1 uname=admin t=2025-08-29T00:11:21.852040813+07:00 level=info msg="Request Completed" method=GET path=/api/live/ws status=-1 remote_addr=[::1] time_ms=2 duration=2.390646ms size=0 referer= handler=/api/live/ws status_source=server
+logger=infra.usagestats t=2025-08-29T00:13:10.943700802+07:00 level=info msg="Usage stats are ready to report"
+logger=context userId=1 orgId=1 uname=admin t=2025-08-29T00:17:11.164619533+07:00 level=info msg="Request Completed" method=GET path=/img/icons/unicons/angle-right.svg status=404 remote_addr=[::1] time_ms=8 duration=8.744882ms size=63809 referer="http://localhost:3000/dashboard/new?editPanel=1&from=now-6h&timezone=browser&to=now" handler=notfound status_source=server
+logger=cleanup t=2025-08-29T00:21:12.962396829+07:00 level=info msg="Completed cleanup jobs" duration=20.42675ms
+logger=plugins.update.checker t=2025-08-29T00:21:13.543652963+07:00 level=info msg="Update check succeeded" duration=333.242699ms
+logger=context userId=1 orgId=1 uname=admin t=2025-08-29T00:22:01.566160766+07:00 level=info msg="Request Completed" method=POST path=/api/ds/query status=400 remote_addr=[::1] time_ms=3 duration=3.050652ms size=176 referer="http://localhost:3000/dashboard/new?editPanel=1&from=now-6h&refresh=5s&timezone=browser&to=now" handler=/api/ds/query status_source=downstream
+logger=context userId=1 orgId=1 uname=admin t=2025-08-29T00:22:01.611486666+07:00 level=error msg=InternalError error="[plugin.downstreamError] client: failed to call resources: error querying resource: Get \"http://localhost:9090/api/v1/label/__name__/values?start=1756380120&end=1756401780\": dial tcp 127.0.0.1:9090: connect: connection refused" remote_addr=[::1] traceID=
+logger=context userId=1 orgId=1 uname=admin t=2025-08-29T00:22:01.61168457+07:00 level=error msg="Request Completed" method=GET path=/api/datasources/uid/aetlpss1ezzeoe/resources/api/v1/label/__name__/values status=500 remote_addr=[::1] time_ms=5 duration=5.065868ms size=116 referer="http://localhost:3000/dashboard/new?editPanel=1&from=now-6h&refresh=5s&timezone=browser&to=now" handler=/api/datasources/uid/:uid/resources/* status_source=downstream
+logger=context userId=1 orgId=1 uname=admin t=2025-08-29T00:22:01.624144475+07:00 level=error msg=InternalError error="[plugin.downstreamError] client: failed to call resources: error querying resource: Post \"http://localhost:9090/api/v1/labels\": dial tcp 127.0.0.1:9090: connect: connection refused" remote_addr=[::1] traceID=
+logger=context userId=1 orgId=1 uname=admin t=2025-08-29T00:22:01.6243167+07:00 level=error msg="Request Completed" method=POST path=/api/datasources/uid/aetlpss1ezzeoe/resources/api/v1/labels status=500 remote_addr=[::1] time_ms=2 duration=2.726843ms size=116 referer="http://localhost:3000/dashboard/new?editPanel=1&from=now-6h&refresh=5s&timezone=browser&to=now" handler=/api/datasources/uid/:uid/resources/* status_source=downstream
+logger=context userId=1 orgId=1 uname=admin t=2025-08-29T00:22:06.566585975+07:00 level=info msg="Request Completed" method=POST path=/api/ds/query status=400 remote_addr=[::1] time_ms=3 duration=3.30712ms size=176 referer="http://localhost:3000/dashboard/new?editPanel=1&from=now-6h&refresh=5s&timezone=browser&to=now" handler=/api/ds/query status_source=downstream
+logger=context userId=1 orgId=1 uname=admin t=2025-08-29T00:22:06.610542007+07:00 level=error msg=InternalError error="[plugin.downstreamError] client: failed to call resources: error querying resource: Get \"http://localhost:9090/api/v1/label/__name__/values?start=1756380120&end=1756401780\": dial tcp 127.0.0.1:9090: connect: connection refused" remote_addr=[::1] traceID=
+logger=context userId=1 orgId=1 uname=admin t=2025-08-29T00:22:06.610696264+07:00 level=error msg="Request Completed" method=GET path=/api/datasources/uid/aetlpss1ezzeoe/resources/api/v1/label/__name__/values status=500 remote_addr=[::1] time_ms=2 duration=2.973696ms size=116 referer="http://localhost:3000/dashboard/new?editPanel=1&from=now-6h&refresh=5s&timezone=browser&to=now" handler=/api/datasources/uid/:uid/resources/* status_source=downstream
+logger=context userId=1 orgId=1 uname=admin t=2025-08-29T00:22:06.619945018+07:00 level=error msg=InternalError error="[plugin.downstreamError] client: failed to call resources: error querying resource: Post \"http://localhost:9090/api/v1/labels\": dial tcp 127.0.0.1:9090: connect: connection refused" remote_addr=[::1] traceID=
+logger=context userId=1 orgId=1 uname=admin t=2025-08-29T00:22:06.620048188+07:00 level=error msg="Request Completed" method=POST path=/api/datasources/uid/aetlpss1ezzeoe/resources/api/v1/labels status=500 remote_addr=[::1] time_ms=3 duration=3.370672ms size=116 referer="http://localhost:3000/dashboard/new?editPanel=1&from=now-6h&refresh=5s&timezone=browser&to=now" handler=/api/datasources/uid/:uid/resources/* status_source=downstream
+logger=context userId=1 orgId=1 uname=admin t=2025-08-29T00:22:11.565191397+07:00 level=info msg="Request Completed" method=POST path=/api/ds/query status=400 remote_addr=[::1] time_ms=2 duration=2.080986ms size=176 referer="http://localhost:3000/dashboard/new?editPanel=1&from=now-6h&refresh=5s&timezone=browser&to=now" handler=/api/ds/query status_source=downstream
+logger=context userId=1 orgId=1 uname=admin t=2025-08-29T00:22:11.60437932+07:00 level=error msg=InternalError error="[plugin.downstreamError] client: failed to call resources: error querying resource: Get \"http://localhost:9090/api/v1/label/__name__/values?start=1756380120&end=1756401780\": dial tcp 127.0.0.1:9090: connect: connection refused" remote_addr=[::1] traceID=
+logger=context userId=1 orgId=1 uname=admin t=2025-08-29T00:22:11.604528936+07:00 level=error msg="Request Completed" method=GET path=/api/datasources/uid/aetlpss1ezzeoe/resources/api/v1/label/__name__/values status=500 remote_addr=[::1] time_ms=2 duration=2.764549ms size=116 referer="http://localhost:3000/dashboard/new?editPanel=1&from=now-6h&refresh=5s&timezone=browser&to=now" handler=/api/datasources/uid/:uid/resources/* status_source=downstream
+logger=context userId=1 orgId=1 uname=admin t=2025-08-29T00:22:11.616643699+07:00 level=error msg=InternalError error="[plugin.downstreamError] client: failed to call resources: error querying resource: Post \"http://localhost:9090/api/v1/labels\": dial tcp 127.0.0.1:9090: connect: connection refused" remote_addr=[::1] traceID=
+logger=context userId=1 orgId=1 uname=admin t=2025-08-29T00:22:11.616839922+07:00 level=error msg="Request Completed" method=POST path=/api/datasources/uid/aetlpss1ezzeoe/resources/api/v1/labels status=500 remote_addr=[::1] time_ms=4 duration=4.3706ms size=116 referer="http://localhost:3000/dashboard/new?editPanel=1&from=now-6h&refresh=5s&timezone=browser&to=now" handler=/api/datasources/uid/:uid/resources/* status_source=downstream
+logger=context userId=1 orgId=1 uname=admin t=2025-08-29T00:22:16.567484056+07:00 level=info msg="Request Completed" method=POST path=/api/ds/query status=400 remote_addr=[::1] time_ms=3 duration=3.694495ms size=176 referer="http://localhost:3000/dashboard/new?editPanel=1&from=now-6h&refresh=5s&timezone=browser&to=now" handler=/api/ds/query status_source=downstream
+logger=context userId=1 orgId=1 uname=admin t=2025-08-29T00:22:16.601417415+07:00 level=error msg=InternalError error="[plugin.downstreamError] client: failed to call resources: error querying resource: Get \"http://localhost:9090/api/v1/label/__name__/values?start=1756380120&end=1756401780\": dial tcp 127.0.0.1:9090: connect: connection refused" remote_addr=[::1] traceID=
+logger=context userId=1 orgId=1 uname=admin t=2025-08-29T00:22:16.601579348+07:00 level=error msg="Request Completed" method=GET path=/api/datasources/uid/aetlpss1ezzeoe/resources/api/v1/label/__name__/values status=500 remote_addr=[::1] time_ms=2 duration=2.787734ms size=116 referer="http://localhost:3000/dashboard/new?editPanel=1&from=now-6h&refresh=5s&timezone=browser&to=now" handler=/api/datasources/uid/:uid/resources/* status_source=downstream
+logger=context userId=1 orgId=1 uname=admin t=2025-08-29T00:22:16.610224194+07:00 level=error msg=InternalError error="[plugin.downstreamError] client: failed to call resources: error querying resource: Post \"http://localhost:9090/api/v1/labels\": dial tcp 127.0.0.1:9090: connect: connection refused" remote_addr=[::1] traceID=
+logger=context userId=1 orgId=1 uname=admin t=2025-08-29T00:22:16.610364458+07:00 level=error msg="Request Completed" method=POST path=/api/datasources/uid/aetlpss1ezzeoe/resources/api/v1/labels status=500 remote_addr=[::1] time_ms=3 duration=3.15456ms size=116 referer="http://localhost:3000/dashboard/new?editPanel=1&from=now-6h&refresh=5s&timezone=browser&to=now" handler=/api/datasources/uid/:uid/resources/* status_source=downstream
+logger=server t=2025-08-29T00:22:21.125095448+07:00 level=info msg="Shutdown started" reason="System signal: interrupt"
+logger=ticker t=2025-08-29T00:22:21.125401346+07:00 level=info msg=stopped last_tick=2025-08-29T00:22:20+07:00
+logger=tracing t=2025-08-29T00:22:21.125502509+07:00 level=info msg="Closing tracing"
+logger=grafana-apiserver t=2025-08-29T00:22:21.125516391+07:00 level=info msg="StorageObjectCountTracker pruner is exiting"
+logger=plugin.hamedkarbasi93-kafka-datasource t=2025-08-29T00:22:21.127150089+07:00 level=info msg="plugin process exited" plugin=/mnt/78D8516BD8512920/GARUDA_ACE/FROOT-LAB/promsketch-standalone/PromsketchServer/grafana-v11.3.0/data/plugins/hamedkarbasi93-kafka-datasource/gpx_kafka-datasource_linux_amd64 id=340449

@@ -143,13 +143,36 @@ func funcAvgOverTime(ctx context.Context, series *memSeries, c float64, t1, t2, 
 	}}
 }
 
+//	func funcSumOverTime(ctx context.Context, series *memSeries, c float64, t1, t2, t int64) Vector {
+//		sum := series.sketchInstances.sampling.QuerySum(t1, t2)
+//		// print t1t2 sum
+//		fmt.Printf("t1: %d, t2: %d, sum: %.0f\n", t1, t2, sum)
+//		return Vector{Sample{
+//			F: sum,
+//		}}
+//	}
+//
+//	func funcSumOverTime(ctx context.Context, series *memSeries, c float64, t1, t2, t int64) Vector {
+//		s := series.sketchInstances.sampling
+//		if s != nil && debugEnabled {
+//			fmt.Printf("[EVAL SUM]  window=[%d,%d] p=%.6f arr_len=%d win_size=%d cur=%d\n",
+//				t1, t2, s.Sampling_rate, len(s.Arr), s.Time_window_size, s.Cur_time)
+//		}
+//		sum := s.QuerySum(t1, t2)
+//		if debugEnabled {
+//			fmt.Printf("[EVAL SUM]  result=%.6f\n", sum)
+//		}
+//		return Vector{Sample{F: sum}}
+//	}
 func funcSumOverTime(ctx context.Context, series *memSeries, c float64, t1, t2, t int64) Vector {
-	sum := series.sketchInstances.sampling.QuerySum(t1, t2)
-	// print t1t2 sum
-	fmt.Printf("t1: %d, t2: %d, sum: %.0f\n", t1, t2, sum)
-	return Vector{Sample{
-		F: sum,
-	}}
+	s := series.sketchInstances.sampling
+	var v float64
+	if PrometheusMode {
+		v = s.QuerySumBuckets(t1, t2) // per-bucket (tanpa 1/p)
+	} else {
+		v = s.QuerySum(t1, t2) // estimator event-level (dengan 1/p)
+	}
+	return Vector{Sample{F: v}}
 }
 
 func funcSum2OverTime(ctx context.Context, series *memSeries, c float64, t1, t2, t int64) Vector {
@@ -159,13 +182,36 @@ func funcSum2OverTime(ctx context.Context, series *memSeries, c float64, t1, t2,
 	}}
 }
 
+//	func funcCountOverTime(ctx context.Context, series *memSeries, c float64, t1, t2, t int64) Vector {
+//		count := series.sketchInstances.sampling.QueryCount(t1, t2)
+//		// print t1t2 count
+//		fmt.Printf("t1: %d, t2: %d, count: %.0f\n", t1, t2, count)
+//		return Vector{Sample{
+//			F: float64(count),
+//		}}
+//	}
+//
+//	func funcCountOverTime(ctx context.Context, series *memSeries, c float64, t1, t2, t int64) Vector {
+//		s := series.sketchInstances.sampling
+//		if s != nil && debugEnabled {
+//			fmt.Printf("[EVAL COUNT] window=[%d,%d] p=%.6f arr_len=%d win_size=%d cur=%d\n",
+//				t1, t2, s.Sampling_rate, len(s.Arr), s.Time_window_size, s.Cur_time)
+//		}
+//		count := s.QueryCount(t1, t2)
+//		if debugEnabled {
+//			fmt.Printf("[EVAL COUNT] result=%.6f\n", count)
+//		}
+//		return Vector{Sample{F: float64(count)}}
+//	}
 func funcCountOverTime(ctx context.Context, series *memSeries, c float64, t1, t2, t int64) Vector {
-	count := series.sketchInstances.sampling.QueryCount(t1, t2)
-	// print t1t2 count
-	fmt.Printf("t1: %d, t2: %d, count: %.0f\n", t1, t2, count)
-	return Vector{Sample{
-		F: float64(count),
-	}}
+	s := series.sketchInstances.sampling
+	var v float64
+	if PrometheusMode {
+		v = s.QueryCountBuckets(t1, t2) // per-bucket (tanpa 1/p)
+	} else {
+		v = s.QueryCount(t1, t2) // estimator event-level (dengan 1/p)
+	}
+	return Vector{Sample{F: v}}
 }
 
 func funcStddevOverTime(ctx context.Context, series *memSeries, c float64, t1, t2, t int64) Vector {
