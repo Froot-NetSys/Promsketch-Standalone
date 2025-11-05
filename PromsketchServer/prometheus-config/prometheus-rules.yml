@@ -1,0 +1,32 @@
+groups:
+  - name: rules
+    interval: 1s  
+    rules:
+      - record: avg_over_time_metric
+        expr: avg_over_time(fake_machine_metric{machineid="machine_0"}[600s])
+      - record: count_over_time_metric
+        expr: count_over_time(fake_machine_metric{machineid="machine_0"}[600s])
+      - record: quantile_90_metric
+        expr: quantile_over_time(0.9, fake_machine_metric{machineid="machine_0"}[600s])
+      - record: quantile_50_metric
+        expr: quantile_over_time(0.5, fake_machine_metric{machineid="achine_0"}[600s])
+      - record: entropy_over_time
+        expr: entropy_over_time(fake_machine_metric{machineid="machine_0"}[600s])
+      - record: max_over_time
+        expr: max_over_time(fake_machine_metric{machineid="machine_0"}[600s])
+      - record: min_over_time
+        expr: min_over_time(fake_machine_metric{machineid="machine_0"}[600s])
+      - record: stddev_over_time
+        expr: stddev_over_time(fake_machine_metric{machineid="machine_0"}[600s])  
+      - record: sum_over_time
+        expr: sum_over_time(fake_machine_metric{machineid="machine_0"}[600s])
+      # - record: sum2_over_time
+      #   expr: sum2_over_time(fake_machine_metric{machineid="0"}[10000s])    
+      - record: distinct_over_time
+        expr: distinct_over_time(fake_machine_metric{machineid="machine_0"}[600s])
+      - record: l1_over_time
+        expr: l1_over_time(fake_machine_metric{machineid="machine_0"}[600s])
+      - record: l2_over_time
+        expr: l2_over_time(fake_machine_metric{machineid="machine_0"}[600s])
+      - record: stdvar_over_time
+        expr: stdvar_over_time(fake_machine_metric{machineid="machine_0"}[600s])
