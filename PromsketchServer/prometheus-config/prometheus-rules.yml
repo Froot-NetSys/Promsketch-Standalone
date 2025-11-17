@@ -1,6 +1,6 @@
 groups:
   - name: rules
-    interval: 1s  
+    interval: 10s  
     rules:
       - record: avg_over_time_metric
         expr: avg_over_time(fake_machine_metric{machineid="machine_0"}[10000s])

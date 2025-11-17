@@ -1,0 +1,80 @@
+groups:
+  - name: promsketch-latency
+    interval: 60s
+    rules:
+      # 1. Average end-to-end query handler latency in PromSketch (using the old queryDuration metric)
+      - record: promsketch_query_duration_seconds:avg5m
+        expr: |
+          (
+            promsketch_query_duration_seconds_sum
+              - promsketch_query_duration_seconds_sum offset 5m
+          )
+          /
+          (
+            promsketch_query_duration_seconds_count
+              - promsketch_query_duration_seconds_count offset 5m
+          )
+
+      # 2. Average eval-only latency in PromSketch (only ps.Eval / EvalAggregate)
+      - record: promsketch_eval_duration_seconds:avg5m
+        expr: |
+          (
+            promsketch_eval_duration_seconds_sum
+              - promsketch_eval_duration_seconds_sum offset 5m
+          )
+          /
+          (
+            promsketch_eval_duration_seconds_count
+              - promsketch_eval_duration_seconds_count offset 5m
+          )
+
+      # 3. Average rule latency from promtools (already correct, in milliseconds)
+      - record: promsketch_rule_latency_ms:avg5m
+        expr: |
+          avg_over_time(promsketch_rule_latency_ms[5m])
+
+      # 4. TOTAL QUERY LATENCY using Prometheus-style SLICES
+      #    Metric: promsketch_engine_query_duration_seconds{slice="...",func="...",aggregate="...",status="success"}
+      #    We compute Δsum and Δcount, then:
+      #    4a: average per func+aggregate (weighted)
+      #    4b: global average (weighted)
+
+      # 4a. Total average latency per func+aggregate (apple-to-apple comparison per query type)
+      - record: promsketch_engine_query_duration_seconds:total_avg5m
+        expr: |
+          sum by (func, aggregate) (
+            promsketch_engine_query_duration_seconds_sum{status="success"}
+              - promsketch_engine_query_duration_seconds_sum{status="success"} offset 5m
+          )
+          /
+          sum by (func, aggregate) (
+            promsketch_engine_query_duration_seconds_count{status="success"}
+              - promsketch_engine_query_duration_seconds_count{status="success"} offset 5m
+          )
+
+      # 4b. Total average latency globally (all func+aggregate combined into one weighted value)
+      - record: promsketch_engine_inner_eval_seconds:avg5m_all
+        expr: |
+          sum(
+            promsketch_engine_query_duration_seconds_sum{status="success", slice="inner_eval"}
+              - promsketch_engine_query_duration_seconds_sum{status="success", slice="inner_eval"} offset 5m
+          )
+          /
+          sum(
+            promsketch_engine_query_duration_seconds_count{status="success", slice="inner_eval"}
+              - promsketch_engine_query_duration_seconds_count{status="success", slice="inner_eval"} offset 5m
+          )
+
+      # 5. TOTAL QUERY LATENCY for Prometheus (for comparison)
+      #    Same principle: Δsum/Δcount but globally averaged (weighted).
+      - record: prometheus_engine_query_duration_seconds:total_avg5m
+        expr: |
+          sum(
+            prometheus_engine_query_duration_seconds_sum
+              - prometheus_engine_query_duration_seconds_sum offset 5m
+          )
+          /
+          sum(
+            prometheus_engine_query_duration_seconds_count
+              - prometheus_engine_query_duration_seconds_count offset 5m
+          )
